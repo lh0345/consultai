@@ -1,13 +1,14 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from './generated/prisma/client';
 import { Database } from './database';
+import { GoogleService } from './google.service';
 import { bookingInput, dateRange, localDate, parse, slotInput, slotTimes, subjectInput, uuid } from './validation';
 
 const bookingDetails = { slot: true, subject: true } as const;
 
 @Injectable()
 export class BookingService {
-  constructor(readonly db: Database) {}
+  constructor(readonly db: Database, private readonly google: GoogleService) {}
 
   subjects() { return this.db.subject.findMany({ orderBy: { createdAt: 'asc' }, select: { id: true, name: true, code: true, icon: true } }); }
 
@@ -29,7 +30,10 @@ export class BookingService {
       orderBy: { startsAt: 'asc' },
       ...(admin && { include: { booking: { select: { id: true, name: true, subject: { select: { name: true } } } } } }),
     });
-    return rows.filter((slot) => localDate(slot.startsAt) >= range.from && localDate(slot.startsAt) <= range.to && (admin || slot.startsAt > new Date()));
+    const candidates = rows.filter((slot) => localDate(slot.startsAt) >= range.from && localDate(slot.startsAt) <= range.to && (admin || slot.startsAt > new Date()));
+    if (admin) return candidates;
+    const busy = await this.google.busy(candidates);
+    return candidates.filter((slot) => !busy.some((range) => Date.parse(range.start) < slot.endsAt.getTime() && Date.parse(range.end) > slot.startsAt.getTime()));
   }
 
   async saveSlot(body: unknown, id?: string) {
@@ -64,8 +68,11 @@ export class BookingService {
     const input = parse(bookingInput, body);
     const existing = await this.db.booking.findUnique({ where: { requestKey: input.requestKey }, include: bookingDetails });
     if (existing) return this.sameRequest(existing, input);
+    const candidate = await this.db.slot.findUnique({ where: { id: input.slotId } });
+    if (!candidate) throw new NotFoundException('This slot no longer exists.');
+    if ((await this.google.busy([candidate])).length) throw new ConflictException('Your professor is busy at this time. Choose another slot.');
     try {
-      return await this.db.$transaction(async (tx) => {
+      const confirmed = await this.db.$transaction(async (tx) => {
         const rows = await tx.$queryRaw<{ id: string }[]>`SELECT id FROM "Slot" WHERE id = ${input.slotId}::uuid FOR UPDATE`;
         if (!rows.length) throw new NotFoundException('This slot no longer exists.');
         const slot = await tx.slot.findUniqueOrThrow({ where: { id: input.slotId }, include: { booking: true } });
@@ -80,10 +87,11 @@ export class BookingService {
         if (!await tx.subject.findUnique({ where: { id: input.subjectId } })) throw new NotFoundException('Subject not found.');
         return tx.booking.create({ data: input, include: bookingDetails });
       });
+      return await this.google.sync(confirmed);
     } catch (error) { this.translateConstraint(error, 'This slot was just booked. Please choose another time.'); }
   }
 
-  private sameRequest<T extends { name: string; email: string; slotId: string; subjectId: string; question: string }>(previous: T, input: T | { name: string; email: string; slotId: string; subjectId: string; question: string }) {
+  private sameRequest<T extends { name: string; email: string; slotId: string; subjectId: string; question: string }>(previous: T, input: { name: string; email: string; slotId: string; subjectId: string; question: string }): T {
     if (['name', 'email', 'slotId', 'subjectId', 'question'].some((key) => previous[key as keyof typeof input] !== input[key as keyof typeof input])) throw new ConflictException('This request has already been used for another booking.');
     return previous;
   }

@@ -20,7 +20,7 @@ export default function App() {
     const slash = (event: KeyboardEvent) => { if (event.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes((event.target as HTMLElement).tagName)) { const search = document.querySelector<HTMLInputElement>('[aria-label="Search subjects"]'); if (search) { event.preventDefault(); search.focus(); } } };
     window.addEventListener('keydown', slash); return () => window.removeEventListener('keydown', slash);
   }, []);
-  const parts = route.split('/').filter(Boolean);
+  const parts = route.split('?')[0].split('/').filter(Boolean);
   const subject = subjects.data?.find((value) => value.id === parts[1]);
   if (subjects.loading && !subjects.data) return <><Header /><Loading /></>;
   if (subjects.error) return <><Header /><main className="student-content"><ErrorNotice message={subjects.error} retry={subjects.refresh} /></main></>;

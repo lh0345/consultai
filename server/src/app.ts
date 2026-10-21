@@ -1,7 +1,7 @@
 import {
   Body, CanActivate, Catch, Controller, Delete, ExecutionContext, ExceptionFilter,
   ArgumentsHost, ForbiddenException, Get, HttpException, Injectable, Module,
-  Param, Patch, Post, Query, UseGuards,
+  Param, Patch, Post, Query, UseGuards, Req, Res,
 } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -10,6 +10,9 @@ import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { BookingService } from './booking.service';
 import { Database } from './database';
+import { GoogleService } from './google.service';
+import { parse, uuid } from './validation';
+import { z } from 'zod';
 
 @Injectable()
 export class LocalAdminGuard implements CanActivate {
@@ -38,6 +41,7 @@ class StudentController {
   constructor(private readonly booking: BookingService) {}
   @Get('health') async health() { await this.booking.db.$queryRaw`SELECT 1`; return { status: 'ok', timezone: 'Europe/Skopje' }; }
   @Get('subjects') subjects() { return this.booking.subjects(); }
+  @Get('capabilities') capabilities() { return { ai: !!process.env.GEMINI_API_KEY }; }
   @Get('slots') slots(@Query('from') from?: string, @Query('to') to?: string) { return this.booking.slots(from, to); }
   @Post('bookings') book(@Body() body: unknown) { return this.booking.book(body); }
 }
@@ -45,7 +49,22 @@ class StudentController {
 @UseGuards(LocalAdminGuard)
 @Controller('api/admin')
 class ProfessorController {
-  constructor(private readonly booking: BookingService) {}
+  constructor(private readonly booking: BookingService, private readonly google: GoogleService) {}
+  @Get('integrations') integrations() { return this.google.status(); }
+  @Post('integrations/google/connect') connect(@Body() body: unknown, @Res({ passthrough: true }) response: Response) { return this.google.begin(parse(z.strictObject({ service: z.enum(['calendar', 'classroom']) }), body).service, response); }
+  @Get('integrations/google/callback') async callback(@Req() request: Request, @Res() response: Response) {
+    try {
+      const result = await this.google.callback(request);
+      return response.redirect(`${process.env.APP_ORIGIN || 'http://localhost:5173'}/#/professor/${result.service}?google=${result.result}`);
+    } catch { return response.redirect(`${process.env.APP_ORIGIN || 'http://localhost:5173'}/#/professor/calendar?google=failed`); }
+  }
+  @Get('calendar-sync') calendarSync() { return this.booking.db.booking.findMany({ where: { calendarStatus: { in: ['pending', 'failed'] } }, include: { slot: true, subject: true }, orderBy: { createdAt: 'desc' }, take: 50 }); }
+  @Post('bookings/:id/calendar') async retryCalendar(@Param('id') id: string) {
+    if (!await this.google.connected('calendar')) throw new ForbiddenException('Connect Google Calendar first.');
+    const booking = await this.booking.db.booking.findUnique({ where: { id: parse(uuid, id) }, include: { slot: true, subject: true } });
+    if (!booking) throw new HttpException('Booking not found.', 404);
+    return this.google.sync(booking);
+  }
   @Get('overview') overview() { return this.booking.overview(); }
   @Get('bookings') bookings() { return this.booking.bookings(); }
   @Get('slots') slots(@Query('from') from?: string, @Query('to') to?: string) { return this.booking.slots(from, to, true); }
@@ -56,7 +75,7 @@ class ProfessorController {
   @Patch('subjects/:id') editSubject(@Param('id') id: string, @Body() body: unknown) { return this.booking.saveSubject(body, id); }
 }
 
-@Module({ controllers: [StudentController, ProfessorController], providers: [Database, BookingService, LocalAdminGuard] })
+@Module({ controllers: [StudentController, ProfessorController], providers: [Database, BookingService, GoogleService, LocalAdminGuard] })
 class AppModule {}
 
 export async function createApp() {

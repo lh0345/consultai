@@ -6,6 +6,8 @@ import { execFileSync } from 'node:child_process';
 import { createApp } from '../server/dist/app.js';
 import { Database } from '../server/dist/database.js';
 import { slotTimes } from '../server/dist/validation.js';
+import { GoogleService } from '../server/dist/google.service.js';
+import { ServiceUnavailableException } from '@nestjs/common';
 
 // Use a new isolated PostgreSQL schema each run. Never reset or remove existing data.
 const schema = `test_${randomUUID().replaceAll('-', '')}`;
@@ -97,4 +99,24 @@ test('Skopje clock changes reject ambiguous and nonexistent local times', () => 
   assert.throws(() => slotTimes({ date: '2027-10-31', startTime: '02:30', duration: 30 }), /missing or ambiguous/);
   assert.equal(slotTimes({ date: '2027-01-12', startTime: '09:00', duration: 30 }).startsAt.toISOString(), '2027-01-12T08:00:00.000Z');
   assert.equal(slotTimes({ date: '2027-07-12', startTime: '09:00', duration: 30 }).startsAt.toISOString(), '2027-07-12T07:00:00.000Z');
+});
+
+test('Calendar check failure rejects safely; sync failure preserves confirmed booking', async () => {
+  const google = app.get(GoogleService);
+  const original = { busy: google.busy, connected: google.connected, request: google.request };
+  const slot = (await request('/admin/slots', slotBody(10))).body;
+  const input = bookingBody(slot);
+  try {
+    google.busy = async () => { throw new ServiceUnavailableException('Calendar unavailable'); };
+    assert.equal((await request('/bookings', input)).status, 503);
+    assert.equal(await db.booking.count({ where: { slotId: slot.id } }), 0);
+    google.busy = async () => [];
+    google.connected = async () => true;
+    google.request = async () => { throw new ServiceUnavailableException('Google unavailable'); };
+    const result = await request('/bookings', input);
+    assert.equal(result.status, 201);
+    assert.equal(result.body.calendarStatus, 'failed');
+    assert.equal((await request('/bookings', input)).body.id, result.body.id);
+    assert.equal(await db.booking.count({ where: { slotId: slot.id } }), 1);
+  } finally { Object.assign(google, original); }
 });

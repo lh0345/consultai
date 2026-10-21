@@ -34,3 +34,10 @@
 - Browser-verified real dashboard data, new-slot form/save, weekly view, and no horizontal overflow at 390px. Booked slots render locked; database tests cover rejected changes/removal.
 - Type checks passed. Browser print-to-PDF works, providing a visual inspection path after screenshot capture timed out. Local QA booking and availability remain saved.
 - Next: optional Calendar OAuth/free-busy/synchronization, then AI and Classroom.
+
+## 6 · Optional Calendar
+
+- Professor-workspace commit: `fb6e580`. Added Google OAuth with state/cookie/PKCE, encrypted refresh tokens, free-busy checks, post-commit calendar events, and persisted pending/failed sync with safe retries.
+- Integration settings show real configured/connected states. No credentials or tokens are sent to the frontend; no email delivery is claimed or attempted.
+- Type checks and six integration tests passed, including simulated provider-check failure (no booking) and sync failure (booking retained and idempotent).
+- Google credentials are absent: live consent, busy checks, and event creation remain unverified. Core behavior remains independent of all providers.
