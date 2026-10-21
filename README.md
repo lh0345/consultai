@@ -31,4 +31,6 @@ npm run build
 
 The seed creates three editable demo subjects and 40 future slots once; no bookings or connected services are fabricated. All displayed data comes from PostgreSQL. Slots belong to the professor and are shared by all subjects. The server validates inputs and locks a slot before booking or editing it.
 
+PostgreSQL enforces one booking per slot and excludes overlapping availability ranges. Adjacent slots are valid. Database triggers reject past bookings and edits to booked slots. Tests exercise the actual engine, including concurrent HTTP and direct database writes, in newly created test schemas (retained to avoid destructive cleanup).
+
 Stage progress and verification are tracked in `docs/PROGRESS.md`. Optional integrations and final production-run instructions will be documented as implemented. Professor administration is a **local demonstration without accounts**; it is not suitable for public hosting. The API binds to loopback and rejects remote professor requests and cross-origin writes.

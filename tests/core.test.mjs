@@ -1,0 +1,99 @@
+import 'reflect-metadata';
+import { test, before, after } from 'node:test';
+import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import { createApp } from '../server/dist/app.js';
+import { Database } from '../server/dist/database.js';
+import { slotTimes } from '../server/dist/validation.js';
+
+// Use a new isolated PostgreSQL schema each run. Never reset or remove existing data.
+const schema = `test_${randomUUID().replaceAll('-', '')}`;
+const originalUrl = process.env.DATABASE_URL;
+let app, db, base, subjects;
+const futureDay = (offset = 1) => new Date(Date.now() + offset * 86400_000).toISOString().slice(0, 10);
+async function request(path, body, method = 'POST', headers = {}) {
+  const result = await fetch(`${base}/api${path}`, {
+    method, headers: { 'Content-Type': 'application/json', ...headers }, ...(body && { body: JSON.stringify(body) }),
+  });
+  return { status: result.status, body: await result.json() };
+}
+const slotBody = (offset, startTime = '09:00') => ({ date: futureDay(offset), startTime, duration: 30 });
+const bookingBody = (slot, subject = subjects[0]) => ({ slotId: slot.id, subjectId: subject.id, name: 'Test Student', email: 'student@example.edu', question: 'Please explain tree traversal.', requestKey: randomUUID() });
+
+before(async () => {
+  const bootstrap = new Database();
+  await bootstrap.$executeRawUnsafe(`CREATE SCHEMA "${schema}"`);
+  await bootstrap.$disconnect();
+  const url = new URL(originalUrl);
+  url.searchParams.set('schema', schema);
+  process.env.DATABASE_URL = url.toString();
+  execFileSync(process.execPath, ['node_modules/prisma/build/index.js', 'migrate', 'deploy'], { env: process.env, stdio: 'pipe' });
+  db = new Database();
+  app = await createApp();
+  await app.listen(0, '127.0.0.1');
+  base = await app.getUrl();
+  subjects = await Promise.all(['CS-A', 'CS-B'].map((code) => db.subject.create({ data: { name: `Subject ${code}`, code } })));
+});
+after(async () => {
+  await app?.close();
+  await db?.$disconnect();
+  process.env.DATABASE_URL = originalUrl;
+  console.log(`Isolated test records retained in PostgreSQL schema ${schema}.`);
+});
+
+test('book, hide across subjects, retry idempotently, and persist after API restart', async () => {
+  const slot = (await request('/admin/slots', slotBody(2))).body;
+  const input = bookingBody(slot);
+  const saved = await request('/bookings', input);
+  assert.equal(saved.status, 201);
+  assert.equal((await request('/bookings', input)).body.id, saved.body.id);
+  assert.equal((await request('/bookings', { ...input, subjectId: subjects[1].id })).status, 409);
+  const available = await request(`/slots?from=${futureDay(2)}&to=${futureDay(2)}`, null, 'GET');
+  assert.ok(!available.body.some((value) => value.id === slot.id));
+  await app.close();
+  app = await createApp();
+  await app.listen(0, '127.0.0.1');
+  base = await app.getUrl();
+  const list = await request('/admin/bookings', null, 'GET');
+  assert.equal(list.body.find((value) => value.id === saved.body.id).email, input.email);
+  assert.equal((await request(`/admin/slots/${slot.id}`, slotBody(3), 'PATCH')).status, 409);
+  assert.equal((await request(`/admin/slots/${slot.id}`, null, 'DELETE')).status, 409);
+});
+
+test('simultaneous HTTP bookings allow exactly one student, including across subjects', async () => {
+  const slot = (await request('/admin/slots', slotBody(4))).body;
+  const attempts = await Promise.all(Array.from({ length: 12 }, (_, i) => request('/bookings', bookingBody(slot, subjects[i % 2]))));
+  assert.equal(attempts.filter((value) => value.status === 201).length, 1);
+  assert.equal(attempts.filter((value) => value.status === 409).length, 11);
+  assert.equal(await db.booking.count({ where: { slotId: slot.id } }), 1);
+});
+
+test('PostgreSQL prevents concurrent overlapping slots and direct duplicate bookings', async () => {
+  const times = slotTimes(slotBody(6));
+  const results = await Promise.allSettled(Array.from({ length: 4 }, () => db.slot.create({ data: times })));
+  assert.equal(results.filter((value) => value.status === 'fulfilled').length, 1);
+  const slot = results.find((value) => value.status === 'fulfilled').value;
+  const adjacent = { startsAt: slot.endsAt, endsAt: new Date(slot.endsAt.getTime() + 30 * 60_000) };
+  await db.slot.create({ data: adjacent });
+  const attempts = await Promise.allSettled(Array.from({ length: 4 }, () => db.booking.create({ data: bookingBody(slot) })));
+  assert.equal(attempts.filter((value) => value.status === 'fulfilled').length, 1);
+  await assert.rejects(db.slot.update({ where: { id: slot.id }, data: { endsAt: new Date(slot.endsAt.getTime() - 60_000) } }));
+});
+
+test('reject invalid inputs, time ranges, and cross-origin mutations; keep PII private', async () => {
+  assert.equal((await request('/admin/slots', { ...slotBody(8), duration: 0 })).status, 400);
+  assert.equal((await request('/admin/slots', { ...slotBody(8), date: '2027-02-30' })).status, 400);
+  assert.equal((await request('/admin/slots', slotBody(8), 'POST', { Origin: 'https://untrusted.example' })).status, 403);
+  assert.equal((await request('/bookings', { name: 'A', email: 'invalid' })).status, 400);
+  assert.equal((await request('/slots?from=2027-01-01&to=2028-01-01', null, 'GET')).status, 400);
+  const available = await request('/slots', null, 'GET');
+  assert.ok(available.body.every((value) => !('booking' in value)));
+});
+
+test('Skopje clock changes reject ambiguous and nonexistent local times', () => {
+  assert.throws(() => slotTimes({ date: '2027-03-28', startTime: '02:30', duration: 30 }), /missing or ambiguous/);
+  assert.throws(() => slotTimes({ date: '2027-10-31', startTime: '02:30', duration: 30 }), /missing or ambiguous/);
+  assert.equal(slotTimes({ date: '2027-01-12', startTime: '09:00', duration: 30 }).startsAt.toISOString(), '2027-01-12T08:00:00.000Z');
+  assert.equal(slotTimes({ date: '2027-07-12', startTime: '09:00', duration: 30 }).startsAt.toISOString(), '2027-07-12T07:00:00.000Z');
+});
