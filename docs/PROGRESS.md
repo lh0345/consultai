@@ -27,3 +27,10 @@
 - Browser-tested search → subject → time → form → confirmed booking. Retained the explicit `Browser QA Student` booking in the local demo database. Confirmation has no horizontal overflow at 390px.
 - Found and fixed a PostgreSQL session-timezone mismatch; connections now force UTC and an integration assertion verifies exact stored/read timestamps. All five tests and frontend/backend type checks passed.
 - Compared layout structure, components, colors, and typography to the source images. Ego screenshots timed out twice, so pixel-level comparison remains unverified. Next: professor screens.
+
+## 5 · Professor workspace
+
+- Student-flow commit: `9ce547c`. Added overview counts, upcoming bookings and details, subject creation/editing, seven-day availability, compact slot creation/editing, and confirmed removal of unbooked slots.
+- Browser-verified real dashboard data, new-slot form/save, weekly view, and no horizontal overflow at 390px. Booked slots render locked; database tests cover rejected changes/removal.
+- Type checks passed. Browser print-to-PDF works, providing a visual inspection path after screenshot capture timed out. Local QA booking and availability remain saved.
+- Next: optional Calendar OAuth/free-busy/synchronization, then AI and Classroom.

@@ -3,6 +3,7 @@ import { go, type Booking, type Subject } from './api';
 import { Empty, ErrorNotice, Header, Loading } from './components';
 import { BookingForm, Confirmation, Subjects, TimeSelection } from './Student';
 import { useData } from './useData';
+import Professor from './Professor';
 
 export default function App() {
   const [route, setRoute] = useState(location.hash.slice(1) || '/');
@@ -21,9 +22,10 @@ export default function App() {
   }, []);
   const parts = route.split('/').filter(Boolean);
   const subject = subjects.data?.find((value) => value.id === parts[1]);
-  if (subjects.loading) return <><Header /><Loading /></>;
+  if (subjects.loading && !subjects.data) return <><Header /><Loading /></>;
   if (subjects.error) return <><Header /><main className="student-content"><ErrorNotice message={subjects.error} retry={subjects.refresh} /></main></>;
   if (!parts.length) return <Subjects subjects={subjects.data || []} />;
+  if (parts[0] === 'professor') return <Professor page={parts[1] || 'overview'} subjects={subjects.data || []} refreshSubjects={subjects.refresh} />;
   if (parts[0] === 'subjects' && subject) {
     if (parts[2] === 'study') return <><Header /><main className="student-content"><Empty title="Your study space is taking shape">Course materials and AI will be available here when configured.</Empty></main></>;
     return <TimeSelection key={subject.id} subject={subject} />;
