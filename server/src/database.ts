@@ -8,7 +8,7 @@ export class Database extends PrismaClient implements OnModuleInit, OnModuleDest
     const url = new URL(process.env.DATABASE_URL!);
     const schema = url.searchParams.get('schema') || 'public';
     if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(schema)) throw new Error('DATABASE_URL schema must use letters, numbers, or underscores.');
-    super({ adapter: new PrismaPg({ connectionString: url.toString(), connectionTimeoutMillis: 5000, options: `-c search_path=${schema}` }, { schema }) });
+    super({ adapter: new PrismaPg({ connectionString: url.toString(), connectionTimeoutMillis: 5000, options: `-c search_path=${schema} -c timezone=UTC` }, { schema }) });
   }
   async onModuleInit() { await this.$connect(); }
   async onModuleDestroy() { await this.$disconnect(); }

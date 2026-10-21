@@ -47,6 +47,7 @@ test('book, hide across subjects, retry idempotently, and persist after API rest
   const input = bookingBody(slot);
   const saved = await request('/bookings', input);
   assert.equal(saved.status, 201);
+  assert.equal(saved.body.slot.startsAt, slotTimes(slotBody(2)).startsAt.toISOString());
   assert.equal((await request('/bookings', input)).body.id, saved.body.id);
   assert.equal((await request('/bookings', { ...input, subjectId: subjects[1].id })).status, 409);
   const available = await request(`/slots?from=${futureDay(2)}&to=${futureDay(2)}`, null, 'GET');

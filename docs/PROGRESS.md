@@ -20,3 +20,10 @@
 - Fixed raw-query search paths and made trigger lookups schema-safe after the isolated-database test exposed the mismatch.
 - Five PostgreSQL integration tests passed: full booking/retry/restart, 12 simultaneous HTTP bookings across subjects (one winner), direct concurrent SQL writes, validation/privacy/origin checks, and Skopje DST handling.
 - Tests create isolated schemas and retain their records; they never reset existing data. No UI-dependent rules or credentials are needed for these guarantees.
+
+## 4 · Student booking screens
+
+- Database-protection commit: `d65a722`. Built subject search, date/time selection, validated booking form, and persistent-session confirmation using the reference layouts and design tokens.
+- Browser-tested search → subject → time → form → confirmed booking. Retained the explicit `Browser QA Student` booking in the local demo database. Confirmation has no horizontal overflow at 390px.
+- Found and fixed a PostgreSQL session-timezone mismatch; connections now force UTC and an integration assertion verifies exact stored/read timestamps. All five tests and frontend/backend type checks passed.
+- Compared layout structure, components, colors, and typography to the source images. Ego screenshots timed out twice, so pixel-level comparison remains unverified. Next: professor screens.
