@@ -62,7 +62,7 @@ export function Logo() {
   );
 }
 export function Header() {
-  const { profile, signOut } = useStudentSession();
+  const { profile, role, error, signOut } = useStudentSession();
   return (
     <header className="student-header">
       <div className="header-inner">
@@ -74,9 +74,11 @@ export function Header() {
             <Globe2 size={16} />
             <span>Europe/Skopje</span>
           </span>
-          <a className="professor-link" href="#/professor">
-            Professor <ArrowRight size={14} />
-          </a>
+          {role === "professor" && (
+            <a className="professor-link" href="#/professor">
+              Professor <ArrowRight size={14} />
+            </a>
+          )}
           {profile && (
             <details className="account-menu">
               <summary aria-label={`Account: ${profile.name}`}>
@@ -92,6 +94,7 @@ export function Header() {
                 <strong>{profile.name}</strong>
                 <span>{profile.email}</span>
                 <button onClick={signOut}>Sign out</button>
+                {error && <span role="alert">{error}</span>}
               </div>
             </details>
           )}

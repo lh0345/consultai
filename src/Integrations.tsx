@@ -185,10 +185,13 @@ export default function Integrations({
                   <div className="setup-notice">
                     <Info size={17} />
                     <div>
-                      <strong>Server setup needed</strong>
+                      <strong>
+                        {status.data.demo ? "Demo mode" : "Server setup needed"}
+                      </strong>
                       <p>
-                        Add Google OAuth credentials and an encryption key. See
-                        README.
+                        {status.data.demo
+                          ? "Classroom roles are simulated. Google APIs are not connected."
+                          : "Add Google OAuth credentials and an encryption key. See README."}
                       </p>
                     </div>
                   </div>

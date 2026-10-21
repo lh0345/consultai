@@ -2920,12 +2920,46 @@ form textarea {
   display: flex;
   margin-bottom: 20px;
 }
-.professor-sign-in-form {
-  text-align: left;
+.demo-account-list {
+  display: grid;
+  gap: 12px;
   margin-top: 28px;
 }
-.professor-sign-in-form .button-primary {
+.demo-account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   width: 100%;
+  padding: 15px;
+  border: 1px solid #dfe6f0;
+  border-radius: 9px;
+  text-align: left;
+  background: white;
+}
+.demo-account:hover {
+  border-color: #a6bee8;
+  background: #fafcff;
+}
+.demo-account-copy {
+  min-width: 0;
+}
+.demo-account-copy strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.demo-account-copy > span {
+  display: block;
+  font-size: 11px;
+  color: #64748b;
+  overflow-wrap: anywhere;
+}
+.demo-account-copy small {
+  display: inline-block;
+  font-size: 10px;
+  color: #4876c9;
+  margin-top: 8px;
 }
 .sign-in-tabs button {
   flex: 1;

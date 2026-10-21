@@ -60,6 +60,7 @@ export class GoogleService {
   }
   async status() {
     return {
+      demo: process.env.AUTH_MODE === "demo",
       googleConfigured: this.configured(),
       calendar: await this.connected("calendar"),
       classroom: await this.connected("classroom"),
@@ -195,9 +196,7 @@ export class GoogleService {
     return { service: info.service, result: "connected" };
   }
 
-  private async tokenRequest(
-    parameters: Record<string, string>,
-  ): Promise<{
+  private async tokenRequest(parameters: Record<string, string>): Promise<{
     access_token: string;
     expires_in: number;
     scope?: string;

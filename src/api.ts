@@ -26,6 +26,7 @@ export type Material = {
   content?: string;
 };
 export type IntegrationStatus = {
+  demo?: boolean;
   googleConfigured: boolean;
   calendar: boolean;
   classroom: boolean;

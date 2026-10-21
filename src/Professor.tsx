@@ -55,13 +55,11 @@ export default function Professor({
   page,
   subjects,
   refreshSubjects,
-  local,
   signOut,
 }: {
   page: string;
   subjects: Subject[];
   refreshSubjects: () => void;
-  local: boolean;
   signOut: () => void;
 }) {
   const [draft, setDraft] = useState<SlotDraft>();
@@ -132,7 +130,7 @@ export default function Professor({
           </a>
           <span className="local-label">
             <LockKeyhole size={11} />
-            {local ? "Local demonstration" : "Password protected"}
+            Demo course creator
           </span>
         </div>
       </aside>
@@ -148,7 +146,7 @@ export default function Professor({
           <span className="workspace-profile">
             <span className="status-dot" />
             Professor workspace<span className="profile-avatar">P</span>
-            {!local && (
+            {
               <button
                 className="icon-button"
                 aria-label="Sign out of professor workspace"
@@ -156,7 +154,7 @@ export default function Professor({
               >
                 <LogOut size={17} />
               </button>
-            )}
+            }
           </span>
         </div>
         <main className="professor-content">

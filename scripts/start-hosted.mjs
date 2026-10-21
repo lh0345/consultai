@@ -4,11 +4,11 @@ import { createApp } from "../server/dist/app.js";
 process.env.APP_ORIGIN ||= process.env.RENDER_EXTERNAL_URL;
 if (
   !process.env.DATABASE_URL ||
-  !process.env.ADMIN_PASSWORD ||
+  process.env.AUTH_MODE !== "demo" ||
   !process.env.APP_ORIGIN?.startsWith("https:")
 )
   throw new Error(
-    "Set DATABASE_URL, ADMIN_PASSWORD, and an HTTPS APP_ORIGIN before hosting.",
+    "Set DATABASE_URL, AUTH_MODE=demo, and an HTTPS APP_ORIGIN before hosting.",
   );
 
 // Fail closed before migrations or listening if hosted authentication is invalid.

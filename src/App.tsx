@@ -10,7 +10,7 @@ import { useStudentSession } from "./session";
 import ProfessorAccess from "./ProfessorAccess";
 
 export default function App() {
-  const { profile } = useStudentSession();
+  const { profile, loading: sessionLoading } = useStudentSession();
   const [route, setRoute] = useState(location.hash.slice(1) || "/");
   const [booking, setBooking] = useState<Booking | null>(() => {
     try {
@@ -23,8 +23,12 @@ export default function App() {
   });
   const subjects = useData<Subject[]>("/subjects");
   useEffect(() => {
-    if (!profile) setBooking(null);
-  }, [profile]);
+    if (
+      !sessionLoading &&
+      (!profile || (booking && booking.email !== profile.email))
+    )
+      setBooking(null);
+  }, [profile, sessionLoading, booking]);
   useEffect(() => {
     const update = () => {
       setRoute(location.hash.slice(1) || "/");
@@ -55,7 +59,8 @@ export default function App() {
   }, []);
   const parts = route.split("?")[0].split("/").filter(Boolean);
   const subject = subjects.data?.find((value) => value.id === parts[1]);
-  if (!profile && parts[0] !== "professor") return <SignIn />;
+  if (sessionLoading) return <Loading />;
+  if (!profile) return <SignIn />;
   if (subjects.loading && !subjects.data)
     return (
       <>
@@ -76,12 +81,11 @@ export default function App() {
   if (parts[0] === "professor")
     return (
       <ProfessorAccess>
-        {({ local, signOut }) => (
+        {({ signOut }) => (
           <Professor
             page={parts[1] || "overview"}
             subjects={subjects.data || []}
             refreshSubjects={subjects.refresh}
-            local={local}
             signOut={signOut}
           />
         )}

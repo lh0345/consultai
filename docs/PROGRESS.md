@@ -94,3 +94,9 @@
 - Verified HTTPS home and database health return 200. Anonymous/incorrect professor credentials return 401, foreign-origin writes return 403, and the configured professor password grants access with a secure HTTP-only cookie. Browser-tested hosted mock sign-in → time → single discussion field → real booking → confirmation → reload; a direct SQL check confirmed persistence. One labeled QA booking remains.
 - Browser-tested server-session expiry returning the professor workspace to sign-in and removing private content. The hosted database uses RLS on all five app tables. Supabase reports no security warnings/errors; its [RLS-without-policies information](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy) is intentional because browser roles are denied direct data access.
 - Created only free compute/database resources. No paid upgrade, domain, provider credentials, data export, or existing-resource mutation. Idle pauses and provider free-tier quotas apply. Professor credentials remain in Render's environment settings; Google student sign-in remains a frontend mock.
+
+## Demo Classroom roles
+
+- At the user's request, replaced the professor password with one mock Google account chooser. Jane Doe opens student booking; Alex Morgan opens the professor workspace as the seeded Classroom course creator.
+- Roles are derived on the server from account ID versus demo course owner ID. Student sessions cannot read professor APIs, and client-supplied role claims are rejected. Both views use the same revocable HTTP-only session. Live Google verification remains unconfigured; hosted demo mode rejects live Google credentials.
+- Production build and all nine integration tests passed, including owner reassignment, student denial, tampered sessions, logout, expiry, restart, and origin restrictions. No database migration or data cleanup was needed. Enabled AUTH_MODE=demo on the existing free Render service.

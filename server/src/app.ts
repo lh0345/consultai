@@ -41,18 +41,22 @@ export class ProfessorGuard implements CanActivate {
   canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest<Request>();
     if (!this.auth.authenticated(request))
-      throw new UnauthorizedException("Sign in to the professor workspace.");
+      if (this.auth.status(request).profile)
+        throw new ForbiddenException(
+          "Professor access is for the course creator.",
+        );
+      else throw new UnauthorizedException("Sign in with Google to continue.");
     return true;
   }
 }
 
-@Controller("api/auth/professor")
+@Controller("api/auth")
 class ProfessorAuthController {
   constructor(private readonly auth: ProfessorAuth) {}
-  @Get() status(@Req() request: Request) {
+  @Get("session") status(@Req() request: Request) {
     return this.auth.status(request);
   }
-  @Post() login(
+  @Post("demo") login(
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
     @Body() body: unknown,

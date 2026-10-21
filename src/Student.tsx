@@ -269,7 +269,8 @@ export function BookingForm({
     try {
       onConfirmed(
         await write<Booking>("/bookings", {
-          ...profile,
+          name: profile.name,
+          email: profile.email,
           question: question.trim(),
           subjectId: subject.id,
           slotId,

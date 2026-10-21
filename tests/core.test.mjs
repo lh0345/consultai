@@ -9,22 +9,34 @@ import { slotTimes } from "../server/dist/validation.js";
 import { GoogleService } from "../server/dist/google.service.js";
 import { ServiceUnavailableException } from "@nestjs/common";
 import { verifiedSources } from "../server/dist/study.service.js";
-import { ProfessorAuth } from "../server/dist/professor-auth.js";
-import { request as httpRequest } from "node:http";
+import { ProfessorAuth, demoCourse } from "../server/dist/professor-auth.js";
 
 // Use a new isolated PostgreSQL schema each run. Never reset or remove existing data.
 const schema = `test_${randomUUID().replaceAll("-", "")}`;
 const originalUrl = process.env.DATABASE_URL;
-let app, db, base, subjects;
+let app, db, base, subjects, professorCookie;
 const futureDay = (offset = 1) =>
   new Date(Date.now() + offset * 86400_000).toISOString().slice(0, 10);
 async function request(path, body, method = "POST", headers = {}) {
   const result = await fetch(`${base}/api${path}`, {
     method,
-    headers: { "Content-Type": "application/json", ...headers },
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: professorCookie,
+      ...headers,
+    },
     ...(body && { body: JSON.stringify(body) }),
   });
   return { status: result.status, body: await result.json() };
+}
+async function professorLogin() {
+  const response = await fetch(base + "/api/auth/demo", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ accountId: "demo-alex" }),
+  });
+  assert.equal(response.status, 201);
+  return response.headers.get("set-cookie").split(";")[0];
 }
 const slotBody = (offset, startTime = "09:00") => ({
   date: futureDay(offset),
@@ -58,6 +70,7 @@ before(async () => {
   app = await createApp();
   await app.listen(0, "127.0.0.1");
   base = await app.getUrl();
+  professorCookie = await professorLogin();
   subjects = await Promise.all(
     ["CS-A", "CS-B"].map((code) =>
       db.subject.create({ data: { name: `Subject ${code}`, code } }),
@@ -96,6 +109,7 @@ test("book, hide across subjects, retry idempotently, and persist after API rest
   app = await createApp();
   await app.listen(0, "127.0.0.1");
   base = await app.getUrl();
+  professorCookie = await professorLogin();
   const list = await request("/admin/bookings", null, "GET");
   assert.equal(
     list.body.find((value) => value.id === saved.body.id).email,
@@ -162,15 +176,7 @@ test("PostgreSQL prevents concurrent overlapping slots and direct duplicate book
 });
 
 test("reject invalid inputs, time ranges, and cross-origin mutations; keep PII private", async () => {
-  const remoteHostStatus = await new Promise((resolve, reject) => {
-    const call = httpRequest(`${base}/api/admin/bookings`, { headers: { Host: "public.example" } }, response => {
-      response.resume();
-      resolve(response.statusCode);
-    });
-    call.on("error", reject);
-    call.end();
-  });
-  assert.equal(remoteHostStatus, 401);
+  assert.equal((await fetch(base + "/api/admin/bookings")).status, 401);
   assert.equal(
     (await request("/admin/slots", { ...slotBody(8), duration: 0 })).status,
     400,
@@ -215,23 +221,30 @@ test("reject invalid inputs, time ranges, and cross-origin mutations; keep PII p
   assert.equal((await request("/bookings", bookingBody(stale))).status, 409);
 });
 
-test("hosted professor access protects records, limits login attempts, and revokes sessions", async () => {
+test("demo Classroom ownership determines roles and protects professor access", async () => {
   const saved = Object.fromEntries(
-    ["ADMIN_PASSWORD", "APP_ORIGIN", "NODE_ENV", "HOST"].map((key) => [
-      key,
-      process.env[key],
-    ]),
+    [
+      "AUTH_MODE",
+      "APP_ORIGIN",
+      "NODE_ENV",
+      "HOST",
+      "GOOGLE_CLIENT_ID",
+      "GOOGLE_CLIENT_SECRET",
+    ].map((key) => [key, process.env[key]]),
   );
-  const password = `integration-test-only-${randomUUID()}`;
+  const ownerId = demoCourse.ownerId;
   let protectedApp;
   try {
-    process.env.ADMIN_PASSWORD = password;
+    process.env.AUTH_MODE = "demo";
     process.env.APP_ORIGIN = "https://consultai.example";
+    process.env.NODE_ENV = "production";
+    delete process.env.GOOGLE_CLIENT_ID;
+    delete process.env.GOOGLE_CLIENT_SECRET;
     protectedApp = await createApp();
     await protectedApp.listen(0, "127.0.0.1");
     let origin = await protectedApp.getUrl();
     const call = (path, body, cookie, extra = {}) =>
-      fetch(`${origin}/api${path}`, {
+      fetch(origin + "/api" + path, {
         method: body ? "POST" : "GET",
         headers: {
           "Content-Type": "application/json",
@@ -241,46 +254,88 @@ test("hosted professor access protects records, limits login attempts, and revok
         ...(body ? { body: JSON.stringify(body) } : {}),
       });
     assert.equal((await call("/admin/bookings")).status, 401);
+    assert.equal((await (await call("/auth/session")).json()).role, null);
     assert.equal(
-      (await (await call("/auth/professor")).json()).authenticated,
-      false,
+      (await call("/auth/demo", { accountId: "unknown-account" })).status,
+      400,
     );
     assert.equal(
-      (await call("/auth/professor", { password: "wrong" })).status,
-      401,
+      (await call("/auth/demo", { accountId: "demo-jane", role: "professor" }))
+        .status,
+      400,
     );
     assert.equal(
       (
-        await call("/auth/professor", { password }, undefined, {
+        await call("/auth/demo", { accountId: "demo-alex" }, undefined, {
           Origin: "https://evil.example",
         })
       ).status,
       403,
     );
-    const login = async () => {
-      const response = await call("/auth/professor", { password });
+    const login = async (accountId = "demo-alex") => {
+      const response = await call("/auth/demo", { accountId });
       assert.equal(response.status, 201);
       const header = response.headers.get("set-cookie");
-      assert.match(header, /__Host-consultai-professor=/);
-      assert.match(header, /HttpOnly/);
-      assert.match(header, /Secure/);
-      assert.match(header, /SameSite=Lax/);
-      assert.match(header, /Path=\//);
-      return header.split(";")[0];
+      for (const expected of [
+        "__Host-consultai-session=",
+        "HttpOnly",
+        "Secure",
+        "SameSite=Lax",
+        "Path=/",
+      ])
+        assert.ok(header.includes(expected));
+      return { cookie: header.split(";")[0], session: await response.json() };
     };
-    const first = await login();
-    assert.equal((await call("/admin/bookings", null, first)).status, 200);
+    const student = await login("demo-jane");
+    assert.equal(student.session.role, "student");
+    assert.equal(student.session.profile.email, "jane.doe@example.edu");
     assert.equal(
-      (await call("/admin/bookings", null, `${first.slice(0, -2)}xx`)).status,
+      (await call("/admin/bookings", null, student.cookie)).status,
+      403,
+    );
+    const professor = await login();
+    assert.equal(professor.session.role, "professor");
+    assert.equal(
+      (await call("/admin/bookings", null, professor.cookie)).status,
+      200,
+    );
+    assert.equal(
+      (
+        await call(
+          "/admin/bookings",
+          null,
+          professor.cookie.slice(0, -2) + "xx",
+        )
+      ).status,
       401,
     );
-    assert.equal((await call("/auth/professor/logout", {}, first)).status, 201);
-    assert.equal((await call("/admin/bookings", null, first)).status, 401);
+    // Ownership, rather than a stored role or email, is authoritative on every request.
+    demoCourse.ownerId = "demo-jane";
+    assert.equal(
+      (await call("/admin/bookings", null, student.cookie)).status,
+      200,
+    );
+    assert.equal(
+      (await call("/admin/bookings", null, professor.cookie)).status,
+      403,
+    );
+    demoCourse.ownerId = ownerId;
+    assert.equal(
+      (await call("/auth/logout", {}, professor.cookie)).status,
+      201,
+    );
+    assert.equal(
+      (await call("/admin/bookings", null, professor.cookie)).status,
+      401,
+    );
     const expiring = await login();
     const now = Date.now;
     try {
       Date.now = () => now() + 8 * 60 * 60 * 1000 + 1;
-      assert.equal((await call("/admin/bookings", null, expiring)).status, 401);
+      assert.equal(
+        (await call("/admin/bookings", null, expiring.cookie)).status,
+        401,
+      );
     } finally {
       Date.now = now;
     }
@@ -289,17 +344,21 @@ test("hosted professor access protects records, limits login attempts, and revok
     protectedApp = await createApp();
     await protectedApp.listen(0, "127.0.0.1");
     origin = await protectedApp.getUrl();
-    assert.equal((await call("/admin/bookings", null, restart)).status, 401);
-    for (let attempt = 0; attempt < 10; attempt++)
-      assert.equal(
-        (await call("/auth/professor", { password: "wrong" })).status,
-        401,
-      );
-    assert.equal((await call("/auth/professor", { password })).status, 429);
-    delete process.env.ADMIN_PASSWORD;
-    process.env.NODE_ENV = "production";
-    assert.throws(() => new ProfessorAuth(), /ADMIN_PASSWORD/);
+    assert.equal(
+      (await call("/admin/bookings", null, restart.cookie)).status,
+      401,
+    );
+    assert.equal(
+      (await call("/auth/professor", { password: "old-password" })).status,
+      404,
+    );
+    delete process.env.AUTH_MODE;
+    assert.throws(() => new ProfessorAuth(), /AUTH_MODE/);
+    process.env.AUTH_MODE = "demo";
+    process.env.GOOGLE_CLIENT_ID = "a-live-client-id";
+    assert.throws(() => new ProfessorAuth(), /live Google credentials/);
   } finally {
+    demoCourse.ownerId = ownerId;
     await protectedApp?.close();
     for (const [key, value] of Object.entries(saved)) {
       if (value === undefined) delete process.env[key];
