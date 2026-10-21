@@ -7,6 +7,7 @@ import Professor from "./Professor";
 import Study from "./Study";
 import SignIn from "./SignIn";
 import { useStudentSession } from "./session";
+import ProfessorAccess from "./ProfessorAccess";
 
 export default function App() {
   const { profile } = useStudentSession();
@@ -74,11 +75,17 @@ export default function App() {
   if (!parts.length) return <Subjects subjects={subjects.data || []} />;
   if (parts[0] === "professor")
     return (
-      <Professor
-        page={parts[1] || "overview"}
-        subjects={subjects.data || []}
-        refreshSubjects={subjects.refresh}
-      />
+      <ProfessorAccess>
+        {({ local, signOut }) => (
+          <Professor
+            page={parts[1] || "overview"}
+            subjects={subjects.data || []}
+            refreshSubjects={subjects.refresh}
+            local={local}
+            signOut={signOut}
+          />
+        )}
+      </ProfessorAccess>
     );
   if (parts[0] === "subjects" && subject) {
     if (parts[2] === "study")

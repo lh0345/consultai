@@ -17,6 +17,7 @@
     "check": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p server/tsconfig.json",
     "build": "npm run check && vite build && tsc -p server/tsconfig.json",
     "start": "node --env-file=.env server/dist/main.js",
+    "start:hosted": "node scripts/start-hosted.mjs",
     "test": "tsc -p server/tsconfig.json && node --env-file=.env --test tests/core.test.mjs"
   },
   "dependencies": {

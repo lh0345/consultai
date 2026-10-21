@@ -19,6 +19,8 @@ export class Database
         {
           connectionString: url.toString(),
           connectionTimeoutMillis: 5000,
+          max: 5,
+          idleTimeoutMillis: 20_000,
           options: `-c search_path=${schema} -c timezone=UTC`,
         },
         { schema },

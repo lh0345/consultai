@@ -9,6 +9,8 @@ import { slotTimes } from "../server/dist/validation.js";
 import { GoogleService } from "../server/dist/google.service.js";
 import { ServiceUnavailableException } from "@nestjs/common";
 import { verifiedSources } from "../server/dist/study.service.js";
+import { ProfessorAuth } from "../server/dist/professor-auth.js";
+import { request as httpRequest } from "node:http";
 
 // Use a new isolated PostgreSQL schema each run. Never reset or remove existing data.
 const schema = `test_${randomUUID().replaceAll("-", "")}`;
@@ -160,6 +162,15 @@ test("PostgreSQL prevents concurrent overlapping slots and direct duplicate book
 });
 
 test("reject invalid inputs, time ranges, and cross-origin mutations; keep PII private", async () => {
+  const remoteHostStatus = await new Promise((resolve, reject) => {
+    const call = httpRequest(`${base}/api/admin/bookings`, { headers: { Host: "public.example" } }, response => {
+      response.resume();
+      resolve(response.statusCode);
+    });
+    call.on("error", reject);
+    call.end();
+  });
+  assert.equal(remoteHostStatus, 401);
   assert.equal(
     (await request("/admin/slots", { ...slotBody(8), duration: 0 })).status,
     400,
@@ -202,6 +213,99 @@ test("reject invalid inputs, time ranges, and cross-origin mutations; keep PII p
     200,
   );
   assert.equal((await request("/bookings", bookingBody(stale))).status, 409);
+});
+
+test("hosted professor access protects records, limits login attempts, and revokes sessions", async () => {
+  const saved = Object.fromEntries(
+    ["ADMIN_PASSWORD", "APP_ORIGIN", "NODE_ENV", "HOST"].map((key) => [
+      key,
+      process.env[key],
+    ]),
+  );
+  const password = `integration-test-only-${randomUUID()}`;
+  let protectedApp;
+  try {
+    process.env.ADMIN_PASSWORD = password;
+    process.env.APP_ORIGIN = "https://consultai.example";
+    protectedApp = await createApp();
+    await protectedApp.listen(0, "127.0.0.1");
+    let origin = await protectedApp.getUrl();
+    const call = (path, body, cookie, extra = {}) =>
+      fetch(`${origin}/api${path}`, {
+        method: body ? "POST" : "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...(cookie ? { Cookie: cookie } : {}),
+          ...extra,
+        },
+        ...(body ? { body: JSON.stringify(body) } : {}),
+      });
+    assert.equal((await call("/admin/bookings")).status, 401);
+    assert.equal(
+      (await (await call("/auth/professor")).json()).authenticated,
+      false,
+    );
+    assert.equal(
+      (await call("/auth/professor", { password: "wrong" })).status,
+      401,
+    );
+    assert.equal(
+      (
+        await call("/auth/professor", { password }, undefined, {
+          Origin: "https://evil.example",
+        })
+      ).status,
+      403,
+    );
+    const login = async () => {
+      const response = await call("/auth/professor", { password });
+      assert.equal(response.status, 201);
+      const header = response.headers.get("set-cookie");
+      assert.match(header, /__Host-consultai-professor=/);
+      assert.match(header, /HttpOnly/);
+      assert.match(header, /Secure/);
+      assert.match(header, /SameSite=Lax/);
+      assert.match(header, /Path=\//);
+      return header.split(";")[0];
+    };
+    const first = await login();
+    assert.equal((await call("/admin/bookings", null, first)).status, 200);
+    assert.equal(
+      (await call("/admin/bookings", null, `${first.slice(0, -2)}xx`)).status,
+      401,
+    );
+    assert.equal((await call("/auth/professor/logout", {}, first)).status, 201);
+    assert.equal((await call("/admin/bookings", null, first)).status, 401);
+    const expiring = await login();
+    const now = Date.now;
+    try {
+      Date.now = () => now() + 8 * 60 * 60 * 1000 + 1;
+      assert.equal((await call("/admin/bookings", null, expiring)).status, 401);
+    } finally {
+      Date.now = now;
+    }
+    const restart = await login();
+    await protectedApp.close();
+    protectedApp = await createApp();
+    await protectedApp.listen(0, "127.0.0.1");
+    origin = await protectedApp.getUrl();
+    assert.equal((await call("/admin/bookings", null, restart)).status, 401);
+    for (let attempt = 0; attempt < 10; attempt++)
+      assert.equal(
+        (await call("/auth/professor", { password: "wrong" })).status,
+        401,
+      );
+    assert.equal((await call("/auth/professor", { password })).status, 429);
+    delete process.env.ADMIN_PASSWORD;
+    process.env.NODE_ENV = "production";
+    assert.throws(() => new ProfessorAuth(), /ADMIN_PASSWORD/);
+  } finally {
+    await protectedApp?.close();
+    for (const [key, value] of Object.entries(saved)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
 });
 
 test("Skopje clock changes reject ambiguous and nonexistent local times", () => {

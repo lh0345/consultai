@@ -2920,6 +2920,13 @@ form textarea {
   display: flex;
   margin-bottom: 20px;
 }
+.professor-sign-in-form {
+  text-align: left;
+  margin-top: 28px;
+}
+.professor-sign-in-form .button-primary {
+  width: 100%;
+}
 .sign-in-tabs button {
   flex: 1;
   font-size: 12px;

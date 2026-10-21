@@ -80,3 +80,10 @@
 - Created the private repository `lh0345/consultai`. Prepared the `initial-commit` publication with existing development history preserved.
 - Added GitHub Actions for a Node 24 production build and the eight integration tests against PostgreSQL 18. Actions are pinned to verified commit SHAs with read-only repository permissions.
 - Extended environment-file exclusions. Reviewed Git history for common credential patterns and excluded local databases, environment files, dependencies, and generated output. Existing application build/test results remain valid; application code is unchanged.
+
+## Free hosting preparation
+
+- User confirmed Render “Leart's workspace” and Supabase “lh0345's Org”. Created a separate Supabase Free project, `consultai`, in Frankfurt. Local bookings and other projects were preserved.
+- Added hosted professor password access with revocable eight-hour opaque sessions, secure HTTP-only cookies, login throttling, and fail-closed startup configuration. Local development retains loopback-only professor access. Student Google identity remains mocked.
+- Added the hosted startup command, migration/optional seed sequence, a bounded database pool, and verified Supabase's public CA for certificate/hostname verification. Confirmed the application database role connects over the session pooler to the private `consultai` schema with UTC sessions; browser roles cannot access the schema.
+- Added a database protection migration for row-level security and fixed trigger search paths. Production build and all nine PostgreSQL integration tests pass, including password rejection, cross-origin rejection, cookie settings, logout replay, expiry, restart, and throttling. Browser-tested professor sign-in, incorrect passwords, reload, and a narrow layout.

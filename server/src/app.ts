@@ -17,6 +17,7 @@ import {
   Post,
   Query,
   UseGuards,
+  UnauthorizedException,
   Req,
   Res,
 } from "@nestjs/common";
@@ -32,21 +33,37 @@ import { StudyService } from "./study.service";
 import { ClassroomService } from "./classroom.service";
 import { parse, uuid } from "./validation";
 import { z } from "zod";
+import { ProfessorAuth } from "./professor-auth";
 
 @Injectable()
-export class LocalAdminGuard implements CanActivate {
+export class ProfessorGuard implements CanActivate {
+  constructor(private readonly auth: ProfessorAuth) {}
   canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest<Request>();
-    const address = request.socket.remoteAddress;
-    const host = request.hostname;
-    if (
-      !["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(address || "") ||
-      !["localhost", "127.0.0.1", "[::1]"].includes(host)
-    )
-      throw new ForbiddenException(
-        "Professor administration is available only on this computer.",
-      );
+    if (!this.auth.authenticated(request))
+      throw new UnauthorizedException("Sign in to the professor workspace.");
     return true;
+  }
+}
+
+@Controller("api/auth/professor")
+class ProfessorAuthController {
+  constructor(private readonly auth: ProfessorAuth) {}
+  @Get() status(@Req() request: Request) {
+    return this.auth.status(request);
+  }
+  @Post() login(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+    @Body() body: unknown,
+  ) {
+    return this.auth.login(request, response, body);
+  }
+  @Post("logout") logout(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    return this.auth.logout(request, response);
   }
 }
 
@@ -104,7 +121,7 @@ class StudentController {
   }
 }
 
-@UseGuards(LocalAdminGuard)
+@UseGuards(ProfessorGuard)
 @Controller("api/admin")
 class ProfessorController {
   constructor(
@@ -221,14 +238,19 @@ class ProfessorController {
 }
 
 @Module({
-  controllers: [StudentController, ProfessorController],
+  controllers: [
+    StudentController,
+    ProfessorController,
+    ProfessorAuthController,
+  ],
   providers: [
     Database,
     BookingService,
     GoogleService,
     StudyService,
     ClassroomService,
-    LocalAdminGuard,
+    ProfessorGuard,
+    ProfessorAuth,
   ],
 })
 class AppModule {}
@@ -238,6 +260,7 @@ export async function createApp() {
     logger: ["error", "warn"],
   });
   app.enableShutdownHooks();
+  if (process.env.NODE_ENV === "production") app.set("trust proxy", 1);
   app.useBodyParser("json", { limit: "256kb" });
   app.useGlobalFilters(new ApiErrors());
   app.use((request: Request, response: Response, next: () => void) => {

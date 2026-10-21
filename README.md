@@ -37,7 +37,7 @@ PostgreSQL enforces one booking per slot and excludes overlapping availability r
 
 Students first use the **mock Google sign-in/sign-up** screen. Both actions use the demo profile Jane Doe (`jane.doe@example.edu`), saved for the current browser tab. The booking form automatically uses that name/email and only asks for an optional discussion topic. The account menu supports sign-out. This is a frontend mock, not real Google identity verification or backend authentication.
 
-Students can search subjects, select a date/time, book, and see confirmation. Open **Professor** to manage subjects, add/edit unbooked slots, and review appointments. Professor administration is still local-demo-only. Availability includes weekends, and all times display in Europe/Skopje.
+Students can search subjects, select a date/time, book, and see confirmation. Open **Professor** to manage subjects, add/edit unbooked slots, and review appointments. Local development uses loopback-only administration; hosted deployments require a professor password. Availability includes weekends, and all times display in Europe/Skopje.
 
 ## Optional Google Calendar
 
@@ -66,4 +66,18 @@ Open **AI & materials**, review an imported item, and use **Load source text** f
 
 After `npm run build`, set `APP_ORIGIN=http://localhost:3001` in `.env`, then run `npm start`. Nest serves the built frontend and API together at http://localhost:3001. If using Google, also update `GOOGLE_REDIRECT_URI` and its registered Google redirect to the same port. Use the `localhost` address when connecting Google. For `npm run dev`, restore the original port 5173 environment values. Development watches both frontend and backend files.
 
-Stage progress, commit hashes, and checks are tracked in `docs/PROGRESS.md`. Professor administration is a **local demonstration without accounts**; it is not suitable for public hosting. The API binds to loopback and rejects remote professor requests and unrelated-origin writes. Local `localhost` and `127.0.0.1` aliases on the configured port are supported. Public hosting would require real professor authentication and authorization.
+Stage progress, commit hashes, and checks are tracked in `docs/PROGRESS.md`. Local development binds to loopback and rejects remote professor requests and unrelated-origin writes. Local `localhost` and `127.0.0.1` aliases on the configured port are supported.
+
+## Free hosted demo
+
+Run the frontend and Nest API together on a **Render Free web service**, backed by a separate **Supabase Free PostgreSQL project**. The app uses a dedicated database role and the private `consultai` schema, without direct browser access to Supabase tables. Local database records and provider credentials are not copied to hosting.
+
+- Build: `npm ci --include=dev && npm run db:generate && npm run build`
+- Start: `npm run start:hosted`
+- Set `DATABASE_URL` to the Supabase **session pooler** URL with `schema=consultai&sslmode=verify-full&sslrootcert=server/certs/supabase-ca.crt`, and set a randomly generated `ADMIN_PASSWORD` of at least 24 characters. Keep both in Render's environment settings. The checked-in public CA certificate comes from the Supabase dashboard's certificate download; certificate and hostname verification remain enabled.
+- Set `NODE_VERSION=24` and optionally `SEED_DEMO=true` to bootstrap subjects and the initial availability. The startup script applies existing Prisma migrations, then seeds only missing demo data.
+- `APP_ORIGIN` defaults to Render's `RENDER_EXTERNAL_URL`. For another host, supply the exact HTTPS origin. Health endpoint: `/api/health`.
+
+Professor access uses an eight-hour, revocable server session in a secure HTTP-only cookie. A server restart or idle shutdown ends professor sessions; sign in again when prompted. The password remains in Render's environment settings. Student Google identity remains an explicitly labeled frontend mock; this is a demonstration deployment.
+
+Free-plan limits apply: [Render sleeps idle services](https://render.com/docs/free), and [Supabase can pause inactive free projects](https://supabase.com/pricing). No paid upgrades, custom domains, Google credentials, or Gemini keys are configured by the deployment.

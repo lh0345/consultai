@@ -65,6 +65,8 @@ export async function api<T>(
     );
   }
   const body = await response.json().catch(() => ({}));
+  if (response.status === 401 && path.startsWith("/admin/"))
+    window.dispatchEvent(new Event("consultai:professor-expired"));
   if (!response.ok)
     throw new ApiError(
       typeof body.message === "string" ? body.message : "Please try again.",
