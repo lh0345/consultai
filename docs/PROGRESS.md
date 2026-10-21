@@ -58,6 +58,7 @@
 
 ## 9 · Final verification & cleanup
 
+- Final implementation commit: `5bcfb37`.
 - Classroom commit: `d5dfc83`. Reviewed all seven rendered screens against the reference images using browser print rendering; improved secondary text contrast and mobile integration navigation.
 - Added stale-slot protection, atomic pending-sync state, safe local-origin aliases, native dialog accessibility, and backend development reload. Removed unused imports/components and formatted source for readability.
 - Expanded the existing concurrency check to six simultaneous overlapping HTTP slot requests. It exposed Prisma's exclusion-error code `P2039`; fixed its translation to a clear 409 response. All eight tests now pass, including this race and stale-form rejection.
