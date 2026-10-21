@@ -74,3 +74,9 @@
 - Removed decorative taglines, duplicate instructions, summary tips, and unused styles across student/professor views. Real Google integrations remain separate from mock student identity.
 - Validation: `npm run build` and all eight PostgreSQL integration tests passed. Browser-tested both mock sign-in/sign-up, session reload, and the single-field booking form. A booking in an isolated test schema persisted the mock name/email and discussion topic and appeared in professor records after reload.
 - Reviewed sign-in and booking visuals through browser print rendering; checked both at 390px and 320px with no horizontal overflow. Existing demo bookings were preserved.
+
+## GitHub publication
+
+- Created the private repository `lh0345/consultai`. Prepared the `initial-commit` publication with existing development history preserved.
+- Added GitHub Actions for a Node 24 production build and the eight integration tests against PostgreSQL 18. Actions are pinned to verified commit SHAs with read-only repository permissions.
+- Extended environment-file exclusions. Reviewed Git history for common credential patterns and excluded local databases, environment files, dependencies, and generated output. Existing application build/test results remain valid; application code is unchanged.

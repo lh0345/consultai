@@ -2,6 +2,8 @@
 
 A university consultation booking platform, built with React, TypeScript, Vite, Tailwind CSS, NestJS, Prisma, and PostgreSQL. The UI follows the eight images in `image-references/`.
 
+Repository: [lh0345/consultai](https://github.com/lh0345/consultai). GitHub Actions builds the app and runs the PostgreSQL integration tests on pushes and pull requests. Local environment files, generated output, and database records are excluded from Git.
+
 ## Local setup
 
 Requires Node.js 22.12+ and npm. A local PostgreSQL helper is included; no Docker or Google account is needed.
