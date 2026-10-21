@@ -2,6 +2,8 @@
 
 A university consultation booking platform, built with React, TypeScript, Vite, Tailwind CSS, NestJS, Prisma, and PostgreSQL. The UI follows the eight images in `image-references/`.
 
+Live demo: **[consultai-lh0345.onrender.com](https://consultai-lh0345.onrender.com)**. Student Google sign-in is mocked. The professor password is stored in the [Render service](https://dashboard.render.com/web/srv-dbc8hu0n74is73fnrk1g) under **Environment → ADMIN_PASSWORD**.
+
 Repository: [lh0345/consultai](https://github.com/lh0345/consultai). GitHub Actions builds the app and runs the PostgreSQL integration tests on pushes and pull requests. Local environment files, generated output, and database records are excluded from Git.
 
 ## Local setup
@@ -79,5 +81,7 @@ Run the frontend and Nest API together on a **Render Free web service**, backed 
 - `APP_ORIGIN` defaults to Render's `RENDER_EXTERNAL_URL`. For another host, supply the exact HTTPS origin. Health endpoint: `/api/health`.
 
 Professor access uses an eight-hour, revocable server session in a secure HTTP-only cookie. A server restart or idle shutdown ends professor sessions; sign in again when prompted. The password remains in Render's environment settings. Student Google identity remains an explicitly labeled frontend mock; this is a demonstration deployment.
+
+The live demo includes three subjects and 40 initial slots. One clearly labeled hosting verification booking is retained. RLS intentionally has no browser policies: only the owning backend role accesses app tables through Nest API routes.
 
 Free-plan limits apply: [Render sleeps idle services](https://render.com/docs/free), and [Supabase can pause inactive free projects](https://supabase.com/pricing). No paid upgrades, custom domains, Google credentials, or Gemini keys are configured by the deployment.
