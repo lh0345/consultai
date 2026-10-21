@@ -10,7 +10,6 @@ import {
   ExternalLink,
   FileText,
   Home,
-  Info,
   LayoutDashboard,
   Link2,
   LockKeyhole,
@@ -173,9 +172,7 @@ export default function Professor({
           )}
         </main>
         <footer className="professor-footer">
-          <span>
-            ConsultAI <span>·</span> A little guidance goes a long way.
-          </span>
+          <span>ConsultAI</span>
           <span>Europe/Skopje</span>
         </footer>
       </div>
@@ -205,9 +202,7 @@ function Dashboard({
     <>
       <div className="page-heading">
         <div>
-          <span className="eyebrow">A CLEARER VIEW OF YOUR DAY</span>
           <h1>Overview</h1>
-          <p>Your consultations, at a glance.</p>
         </div>
         <Button onClick={newSlot}>
           <Plus size={17} />
@@ -257,9 +252,6 @@ function Dashboard({
               <div className="section-heading">
                 <div>
                   <h2>Upcoming consultations</h2>
-                  <p className="muted">
-                    A little preparation for your next conversations.
-                  </p>
                 </div>
                 <a className="text-link" href="#/professor/bookings">
                   View all <ArrowRight size={15} />
@@ -271,26 +263,9 @@ function Dashboard({
                   viewBooking={viewBooking}
                 />
               ) : (
-                <Empty title="A little room to connect">
-                  Your upcoming student consultations will appear here.
-                </Empty>
+                <Empty title="No upcoming consultations" />
               )}
             </section>
-            <div className="professor-tip">
-              <span className="tip-icon">
-                <CalendarDays size={21} />
-              </span>
-              <div>
-                <strong>One schedule. Every subject.</strong>
-                <p>
-                  Create availability once. Students choose the subject when
-                  they book.
-                </p>
-              </div>
-              <a href="#/professor/availability">
-                Manage availability <ArrowRight size={15} />
-              </a>
-            </div>
           </>
         )
       )}
@@ -366,7 +341,6 @@ function BookingList({
       <div className="page-heading">
         <div>
           <h1>Bookings</h1>
-          <p>Good conversations start here.</p>
         </div>
         <Pill>{filtered.length} consultations</Pill>
       </div>
@@ -478,7 +452,7 @@ function Availability({
       <div className="page-heading">
         <div>
           <h1>Availability</h1>
-          <p>Set your week. All subjects share the same schedule.</p>
+          <p>Shared across all subjects.</p>
         </div>
         <Button onClick={() => newSlot(today())}>
           <Plus size={17} />
@@ -596,13 +570,6 @@ function Availability({
           </div>
         )}
       </section>
-      <div className="availability-note">
-        <Info size={18} />
-        <p>
-          Each slot is one bookable consultation. Booked times are locked so
-          student appointments stay secure.
-        </p>
-      </div>
       {removing && (
         <Modal
           title="Remove this slot?"
@@ -676,12 +643,9 @@ function SlotEditor({
   }
   return (
     <Modal
-      title={draft.slot ? "Edit time slot" : "Make time to connect"}
+      title={draft.slot ? "Edit slot" : "New slot"}
       close={() => !pending && close()}
     >
-      <p className="muted">
-        One available consultation, shared across all subjects.
-      </p>
       <form onSubmit={submit}>
         <label>
           Date
@@ -780,7 +744,6 @@ function SubjectManagement({
       <div className="page-heading">
         <div>
           <h1>Subjects</h1>
-          <p>Different subjects. One place to find guidance.</p>
         </div>
         <Button
           onClick={() => {

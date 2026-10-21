@@ -79,7 +79,6 @@ export default function Study({ subject }: { subject: Subject }) {
           <div className="study-columns">
             <aside className="materials-sidebar">
               <h2>Course materials</h2>
-              <p>Selected by your professor.</p>
               {materials.loading ? (
                 <Loading />
               ) : materials.error ? (
@@ -89,8 +88,7 @@ export default function Study({ subject }: { subject: Subject }) {
                 />
               ) : !materials.data?.length ? (
                 <Empty icon={BookOpen} title="Materials coming soon">
-                  Your professor hasn’t approved any lectures for this subject
-                  yet.
+                  No approved lectures yet.
                 </Empty>
               ) : (
                 <div className="lecture-list">
@@ -118,7 +116,7 @@ export default function Study({ subject }: { subject: Subject }) {
               )}
               <div className="materials-note">
                 <ShieldCheck size={13} />
-                <span>Only approved materials are used.</span>
+                <span>Professor-approved</span>
               </div>
             </aside>
             <section className="chat-panel">
@@ -128,11 +126,7 @@ export default function Study({ subject }: { subject: Subject }) {
                 </span>
                 <div>
                   <h2>AI Study Assistant</h2>
-                  <p>
-                    {current
-                      ? current.title
-                      : "A little clarity for your next question."}
-                  </p>
+                  <p>{current ? current.title : "Select a lecture"}</p>
                 </div>
                 <span className="ai-label">COURSE-BASED</span>
               </div>
@@ -142,17 +136,21 @@ export default function Study({ subject }: { subject: Subject }) {
                     <span className="welcome-sparkles">
                       <Sparkles size={32} strokeWidth={1.5} />
                     </span>
-                    <h3>Make sense of what’s next.</h3>
+                    <h3>
+                      {capabilities.data?.ai
+                        ? "Ask a question"
+                        : "AI not connected"}
+                    </h3>
                     <p>
                       {capabilities.data?.ai
                         ? current
-                          ? "Ask a question about the selected lecture. We’ll work through it together."
-                          : "Choose a lecture to start exploring."
-                        : "Your professor hasn’t connected the study assistant yet. You can still book a consultation."}
+                          ? "About this lecture."
+                          : "Select a lecture first."
+                        : "Book a consultation instead."}
                     </p>
                     {!capabilities.data?.ai && (
                       <a href={`#/subjects/${subject.id}`}>
-                        Find a consultation time <ArrowRight size={14} />
+                        Book a slot <ArrowRight size={14} />
                       </a>
                     )}
                   </div>
@@ -204,9 +202,7 @@ export default function Study({ subject }: { subject: Subject }) {
                 <input
                   aria-label="Question about the lecture"
                   placeholder={
-                    current
-                      ? "Ask a question about this lecture…"
-                      : "Select a lecture to get started…"
+                    current ? "Ask about this lecture…" : "Select a lecture…"
                   }
                   value={question}
                   maxLength={2000}
@@ -227,8 +223,7 @@ export default function Study({ subject }: { subject: Subject }) {
                 </button>
               </form>
               <p className="chat-disclaimer">
-                AI can make mistakes. Check explanations against your course
-                materials.
+                AI can make mistakes. Check your course materials.
               </p>
             </section>
           </div>

@@ -89,7 +89,6 @@ export default function Materials({ subjects }: { subjects: Subject[] }) {
       <div className="page-heading">
         <div>
           <h1>AI & course materials</h1>
-          <p>A thoughtful assistant starts with trusted material.</p>
         </div>
         <Button
           disabled={!subjects.length}
@@ -115,8 +114,8 @@ export default function Materials({ subjects }: { subjects: Subject[] }) {
           <strong>Gemini study assistant</strong>
           <p>
             {status.data?.ai
-              ? "Ready to answer questions using approved course text."
-              : "Add GEMINI_API_KEY to the server environment to enable student questions."}
+              ? "Uses approved materials."
+              : "Set GEMINI_API_KEY to enable."}
           </p>
         </div>
         <Pill success={!!status.data?.ai}>
@@ -195,9 +194,7 @@ export default function Materials({ subjects }: { subjects: Subject[] }) {
       <div className="material-privacy-note">
         <ShieldCheck size={17} />
         <p>
-          Approving a material allows its text to be sent to Gemini for student
-          questions. Only its title and verified source excerpts are shown to
-          students. Private Drive files are never served publicly.
+          Approved text is shared with Gemini. Private Drive files stay private.
         </p>
       </div>
       {editing && (

@@ -5,8 +5,11 @@ import { BookingForm, Confirmation, Subjects, TimeSelection } from "./Student";
 import { useData } from "./useData";
 import Professor from "./Professor";
 import Study from "./Study";
+import SignIn from "./SignIn";
+import { useStudentSession } from "./session";
 
 export default function App() {
+  const { profile } = useStudentSession();
   const [route, setRoute] = useState(location.hash.slice(1) || "/");
   const [booking, setBooking] = useState<Booking | null>(() => {
     try {
@@ -18,6 +21,9 @@ export default function App() {
     }
   });
   const subjects = useData<Subject[]>("/subjects");
+  useEffect(() => {
+    if (!profile) setBooking(null);
+  }, [profile]);
   useEffect(() => {
     const update = () => {
       setRoute(location.hash.slice(1) || "/");
@@ -48,6 +54,7 @@ export default function App() {
   }, []);
   const parts = route.split("?")[0].split("/").filter(Boolean);
   const subject = subjects.data?.find((value) => value.id === parts[1]);
+  if (!profile && parts[0] !== "professor") return <SignIn />;
   if (subjects.loading && !subjects.data)
     return (
       <>
@@ -81,7 +88,7 @@ export default function App() {
   if (parts[0] === "book" && subject && parts[2])
     return (
       <BookingForm
-        key={parts[2]}
+        key={`${parts[2]}-${profile?.email}`}
         subject={subject}
         slotId={parts[2]}
         onConfirmed={(result) => {

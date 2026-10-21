@@ -5,6 +5,7 @@ import {
   BookOpen,
   CalendarDays,
   Check,
+  ChevronDown,
   Clock3,
   Code2,
   Database,
@@ -26,6 +27,7 @@ import {
   type Slot,
   type Subject,
 } from "./api";
+import { useStudentSession } from "./session";
 
 const icons: Record<string, LucideIcon> = {
   database: Database,
@@ -60,6 +62,7 @@ export function Logo() {
   );
 }
 export function Header() {
+  const { profile, signOut } = useStudentSession();
   return (
     <header className="student-header">
       <div className="header-inner">
@@ -72,8 +75,26 @@ export function Header() {
             <span>Europe/Skopje</span>
           </span>
           <a className="professor-link" href="#/professor">
-            Professor area <ArrowRight size={14} />
+            Professor <ArrowRight size={14} />
           </a>
+          {profile && (
+            <details className="account-menu">
+              <summary aria-label={`Account: ${profile.name}`}>
+                <span className="account-avatar">
+                  {profile.name
+                    .split(" ")
+                    .map((name) => name[0])
+                    .join("")}
+                </span>
+                <ChevronDown size={13} />
+              </summary>
+              <div className="account-dropdown">
+                <strong>{profile.name}</strong>
+                <span>{profile.email}</span>
+                <button onClick={signOut}>Sign out</button>
+              </div>
+            </details>
+          )}
         </div>
       </div>
     </header>
@@ -169,7 +190,6 @@ export function SubjectHeader({
         </button>
         <SubjectIcon icon={subject.icon} />
         <div>
-          <span className="eyebrow">YOUR SUBJECT</span>
           <h1>{subject.name}</h1>
           <span className="muted">{subject.code}</span>
         </div>

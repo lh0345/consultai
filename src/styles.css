@@ -176,33 +176,10 @@ h3 {
   margin: 103px auto 80px;
   text-align: center;
 }
-.intro-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  color: #6680b5;
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.13em;
-  border: 1px solid #e1e9f9;
-  background: #f3f6fd;
-  padding: 7px 11px;
-  border-radius: 5px;
-  margin-bottom: 24px;
-}
 .subjects-page > h1 {
   font-size: clamp(32px, 3.2vw, 44px);
   letter-spacing: -0.05em;
-  margin-bottom: 16px;
-}
-.mobile-break {
-  display: none;
-}
-.intro-description {
-  color: #64748b;
-  line-height: 1.7;
-  font-size: 15px;
-  margin-bottom: 29px;
+  margin-bottom: 32px;
 }
 .search-field {
   height: 56px;
@@ -354,27 +331,6 @@ kbd {
   color: #fff;
   border-color: #2563eb;
 }
-.subjects-note {
-  margin-top: 34px;
-  color: #9aa5b8;
-  font-size: 11px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: center;
-}
-.student-footer {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 25px 52px;
-  display: flex;
-  justify-content: space-between;
-  font-size: 10px;
-  color: #a0aabd;
-}
-.footer-dot {
-  margin: 0 7px;
-}
 .student-content {
   max-width: 860px;
   margin: 36px auto 70px;
@@ -412,10 +368,6 @@ kbd {
 }
 .subject-heading .muted {
   font-size: 13px;
-}
-.subject-heading .eyebrow {
-  margin-bottom: 6px;
-  font-size: 8px;
 }
 .subject-back {
   display: none;
@@ -580,20 +532,12 @@ kbd {
 }
 .slot-actions {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   border-top: 1px solid #edf0f5;
   margin-top: 27px;
   padding-top: 20px;
   gap: 15px;
-}
-.slot-actions p {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin: 0;
-  color: #64748b;
-  font-size: 10px;
 }
 .button-primary,
 .button-secondary {
@@ -713,43 +657,6 @@ kbd {
   margin-bottom: 9px;
   font-size: 31px;
 }
-.booking-form > .muted {
-  font-size: 12px;
-  margin-bottom: 23px;
-}
-.booking-recap {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 17px;
-  border: 1px solid #e5ebf7;
-  background: #fafbff;
-  border-radius: 9px;
-  margin-bottom: 26px;
-}
-.booking-recap strong {
-  font-size: 12px;
-  font-weight: 500;
-}
-.booking-recap span {
-  display: block;
-  font-size: 10px;
-  margin-top: 5px;
-  color: #64748b;
-}
-.booking-recap > .subject-icon {
-  display: inline-flex;
-  margin-top: 0;
-}
-.recap-time {
-  border-left: 1px solid #e0e7f5;
-  margin-left: auto;
-  padding-left: 17px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #667fae;
-}
 form label {
   display: block;
   font-size: 13px;
@@ -820,14 +727,6 @@ form textarea {
   min-width: 216px;
   margin-top: 3px;
 }
-.privacy-note {
-  color: #a2adbd;
-  font-size: 9px;
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  margin: 14px 0 0;
-}
 .booking-sidebar h2 {
   font-size: 19px;
   margin-bottom: 27px;
@@ -871,23 +770,6 @@ form textarea {
   text-align: right;
   overflow-wrap: anywhere;
 }
-.summary-note {
-  border-top: 1px solid #edf0f6;
-  margin-top: 4px;
-  padding-top: 22px;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  color: #a0aec3;
-}
-.summary-note svg {
-  flex-shrink: 0;
-}
-.summary-note p {
-  font-size: 11px;
-  line-height: 1.7;
-  margin: 0;
-}
 .confirmation-page {
   max-width: 560px;
   padding: 0 24px;
@@ -914,10 +796,6 @@ form textarea {
 .confirmation-page h1 {
   font-size: 33px;
   line-height: 1.22;
-  margin-bottom: 14px;
-}
-.confirmation-page > p {
-  font-size: 12px;
   margin-bottom: 27px;
 }
 .confirmation-card {
@@ -1049,19 +927,6 @@ form textarea {
   .booking-sidebar {
     padding: 24px;
   }
-  .booking-recap .subject-icon {
-    display: none;
-  }
-  .booking-recap {
-    padding: 13px;
-    gap: 7px;
-  }
-  .recap-time {
-    padding-left: 12px;
-  }
-  .recap-time > svg {
-    display: none;
-  }
 }
 @media (max-width: 640px) {
   .student-header {
@@ -1107,18 +972,6 @@ form textarea {
     font-size: 32px;
     line-height: 1.22;
   }
-  .intro-chip {
-    font-size: 7px;
-    letter-spacing: 0.1em;
-    margin-bottom: 22px;
-  }
-  .mobile-break {
-    display: block;
-  }
-  .intro-description {
-    font-size: 12px;
-    margin-bottom: 23px;
-  }
   .search-field {
     height: 51px;
     margin-bottom: 22px;
@@ -1152,15 +1005,6 @@ form textarea {
     right: 19px;
     top: calc(50% - 14px);
   }
-  .subjects-note {
-    font-size: 9px;
-    margin-top: 27px;
-  }
-  .student-footer {
-    padding: 15px 22px 23px;
-    font-size: 8px;
-    gap: 10px;
-  }
   .student-content {
     padding: 0 15px;
     margin-top: 23px;
@@ -1173,9 +1017,6 @@ form textarea {
   }
   .subject-heading h1 {
     font-size: 23px;
-  }
-  .subject-heading .eyebrow {
-    font-size: 7px;
   }
   .tabs {
     gap: 8px;
@@ -1218,14 +1059,6 @@ form textarea {
   .time-card strong {
     font-size: 14px;
   }
-  .slot-actions p {
-    max-width: 125px;
-    font-size: 9px;
-    line-height: 1.5;
-  }
-  .slot-actions p svg {
-    flex-shrink: 0;
-  }
   .button-primary,
   .button-secondary {
     padding: 12px 18px;
@@ -1247,18 +1080,12 @@ form textarea {
   .booking-form h1 {
     font-size: 29px;
   }
-  .booking-form .eyebrow {
-    font-size: 8px;
-  }
   .booking-sidebar {
     width: 100%;
     padding: 25px;
   }
   .booking-form form > .button-primary {
     width: 100%;
-  }
-  .privacy-note {
-    justify-content: center;
   }
   .confirmation-page {
     margin-top: 38px;
@@ -1317,12 +1144,6 @@ form textarea {
 .materials-sidebar > h2 {
   font-size: 16px;
   margin: 0 8px 7px;
-}
-.materials-sidebar > p {
-  font-size: 10px;
-  color: #73839d;
-  margin-left: 8px;
-  margin-bottom: 23px;
 }
 .materials-sidebar .empty-state {
   padding: 30px 10px;
@@ -1766,22 +1587,6 @@ form textarea {
   max-width: 570px;
   margin-bottom: 21px;
 }
-.connection-benefits {
-  border-top: 1px solid #edf0f6;
-  padding-top: 17px;
-  margin-bottom: 24px;
-}
-.connection-benefits > div {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 11px;
-  color: #64748b;
-  padding: 7px 0;
-}
-.connection-benefits svg {
-  color: #94bda5;
-}
 .setup-notice {
   display: flex;
   gap: 11px;
@@ -2158,10 +1963,9 @@ form textarea {
 }
 .consultation-row {
   display: grid;
-  grid-template-columns: 70px minmax(160px, 1.2fr) minmax(130px, 1fr) minmax(
-      100px,
-      1fr
-    ) 16px;
+  grid-template-columns:
+    70px minmax(160px, 1.2fr) minmax(130px, 1fr) minmax(100px, 1fr)
+    16px;
   gap: 15px;
   align-items: center;
   text-align: left;
@@ -2253,42 +2057,6 @@ form textarea {
 }
 .consultation-row > svg {
   color: #9aaac3;
-}
-.professor-tip {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  border: 1px solid #e4eaf5;
-  background: #f1f5fe;
-  padding: 21px 23px;
-  border-radius: 10px;
-  margin-top: 24px;
-}
-.tip-icon {
-  background: #e4edff;
-  color: #779be2;
-  border-radius: 9px;
-  padding: 12px;
-  display: flex;
-}
-.professor-tip strong {
-  font-size: 12px;
-  font-weight: 500;
-  color: #60769c;
-}
-.professor-tip p {
-  font-size: 10px;
-  color: #6b7f9d;
-  margin: 6px 0 0;
-}
-.professor-tip > a {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 10px;
-  color: #4774bc;
-  white-space: nowrap;
 }
 .professor-footer {
   display: flex;
@@ -2484,21 +2252,6 @@ form textarea {
   color: #c0c8d6;
   font-size: 10px;
 }
-.availability-note {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #92a6c7;
-  padding: 18px 3px;
-}
-.availability-note > svg {
-  flex-shrink: 0;
-}
-.availability-note p {
-  font-size: 10px;
-  margin: 0;
-  line-height: 1.7;
-}
 .form-two-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2586,10 +2339,6 @@ form textarea {
   }
   .managed-subjects {
     grid-template-columns: repeat(2, 1fr);
-  }
-  .professor-tip > a {
-    font-size: 0;
-    gap: 0;
   }
 }
 @media (max-width: 850px) {
@@ -2720,11 +2469,6 @@ form textarea {
   .materials-sidebar > h2 {
     font-size: 14px;
     margin-left: 3px;
-  }
-  .materials-sidebar > p {
-    font-size: 9px;
-    margin-left: 3px;
-    margin-bottom: 14px;
   }
   .lecture-list {
     flex-direction: row;
@@ -3046,21 +2790,6 @@ form textarea {
     height: 30px;
     font-size: 8px;
   }
-  .professor-tip {
-    padding: 17px 15px;
-    gap: 12px;
-    margin-top: 20px;
-  }
-  .professor-tip strong {
-    font-size: 10px;
-  }
-  .professor-tip p {
-    font-size: 8px;
-    line-height: 1.6;
-  }
-  .tip-icon {
-    padding: 9px;
-  }
   .professor-footer {
     padding: 13px 21px 24px;
     font-size: 7px;
@@ -3104,10 +2833,6 @@ form textarea {
   .remove-slot {
     padding-right: 5px;
   }
-  .availability-note {
-    font-size: 9px;
-    align-items: flex-start;
-  }
   .list-toolbar {
     gap: 10px;
     flex-wrap: wrap;
@@ -3145,6 +2870,190 @@ form textarea {
   }
   .drive-source-note {
     flex-wrap: wrap;
+  }
+}
+.sign-in-page {
+  min-height: 100dvh;
+}
+.sign-in-header {
+  max-width: 1440px;
+  height: 88px;
+  margin: 0 auto;
+  padding: 0 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sign-in-header > a:last-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #64748b;
+}
+.sign-in-card {
+  width: min(420px, calc(100% - 40px));
+  margin: 90px auto 50px;
+  padding: 38px;
+  text-align: center;
+}
+.sign-in-symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 62px;
+  height: 64px;
+  border-radius: 17px;
+  background: #edf3ff;
+  color: #2563eb;
+  margin-bottom: 24px;
+}
+.sign-in-card h1 {
+  font-size: 30px;
+  margin-bottom: 12px;
+}
+.sign-in-card > p {
+  font-size: 13px;
+  margin-bottom: 28px;
+}
+.sign-in-tabs {
+  display: flex;
+  margin-bottom: 20px;
+}
+.sign-in-tabs button {
+  flex: 1;
+  font-size: 12px;
+}
+.google-sign-in {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 13px;
+  border: 1px solid #dfe6f0;
+  border-radius: 8px;
+  background: white;
+  color: #34425c;
+  font-size: 13px;
+  font-weight: 500;
+}
+.google-sign-in:hover {
+  border-color: #a6bee8;
+  background: #fafcff;
+}
+.sign-in-demo {
+  display: block;
+  color: #7c8ba2;
+  font-size: 10px;
+  margin-top: 20px;
+}
+.account-menu {
+  position: relative;
+}
+.account-menu > summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  list-style: none;
+  color: #94a3b8;
+}
+.account-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.account-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #eaf1ff;
+  color: #4876c9;
+  font-size: 11px;
+  font-weight: 500;
+}
+.account-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 215px;
+  padding: 16px;
+  background: white;
+  border: 1px solid #e3eaf4;
+  border-radius: 10px;
+  box-shadow: 0 8px 25px #213c7112;
+  z-index: 20;
+}
+.account-dropdown strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 7px;
+}
+.account-dropdown > span {
+  color: #64748b;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.account-dropdown button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 13px 0 0;
+  margin-top: 13px;
+  border-top: 1px solid #edf0f6;
+  color: #64748b;
+  font-size: 12px;
+}
+.booking-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 17px 0 25px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #edf0f6;
+}
+.booking-profile strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 7px;
+}
+.booking-profile > div > span {
+  font-size: 11px;
+  color: #64748b;
+}
+.materials-sidebar > h2 {
+  margin-bottom: 22px;
+}
+@media (max-width: 640px) {
+  .sign-in-header {
+    height: 72px;
+    padding: 0 22px;
+  }
+  .sign-in-card {
+    margin-top: 55px;
+    padding: 30px 25px;
+  }
+  .sign-in-card h1 {
+    font-size: 28px;
+  }
+  .header-actions {
+    gap: 12px;
+  }
+  .account-menu > summary > svg {
+    display: none;
+  }
+  .booking-profile {
+    padding-top: 13px;
+  }
+}
+@media (max-width: 480px) {
+  .header-actions .timezone {
+    display: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {

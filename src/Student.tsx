@@ -4,25 +4,18 @@ import {
   ArrowRight,
   BookOpen,
   CalendarCheck2,
-  CalendarDays,
   Check,
   ChevronLeft,
   ChevronRight,
   Clock3,
-  GraduationCap,
-  LockKeyhole,
-  Mail,
   MessageSquare,
   Search,
-  ShieldCheck,
   Sparkles,
-  UserRound,
 } from "lucide-react";
 import {
   addDays,
   ApiError,
   dateKey,
-  dateLabel,
   go,
   minutes,
   time,
@@ -43,6 +36,7 @@ import {
   SubjectIcon,
 } from "./components";
 import { useData } from "./useData";
+import { useStudentSession } from "./session";
 
 export function Subjects({ subjects }: { subjects: Subject[] }) {
   const [query, setQuery] = useState("");
@@ -55,25 +49,14 @@ export function Subjects({ subjects }: { subjects: Subject[] }) {
     <>
       <Header />
       <main className="subjects-page">
-        <span className="intro-chip">
-          <GraduationCap size={15} /> A LITTLE GUIDANCE GOES A LONG WAY
-        </span>
-        <h1>
-          What subject do you
-          <br className="mobile-break" /> need help with?
-        </h1>
-        <p className="intro-description">
-          Good questions lead to great understanding.
-          <br />
-          Find your subject and make time to connect.
-        </p>
+        <h1>Choose a subject</h1>
         <label className="search-field">
           <Search size={21} />
           <input
             aria-label="Search subjects"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search by subject or course code…"
+            placeholder="Search subjects…"
           />
           <kbd>/</kbd>
         </label>
@@ -88,7 +71,6 @@ export function Subjects({ subjects }: { subjects: Subject[] }) {
               <div className="subject-card-copy">
                 <span className="course-code">{subject.code}</span>
                 <h2>{subject.name}</h2>
-                <p>Explore consultation times</p>
               </div>
               <span className="card-arrow">
                 <ArrowRight size={20} />
@@ -110,18 +92,7 @@ export function Subjects({ subjects }: { subjects: Subject[] }) {
               : "Your professor hasn’t added any subjects yet."}
           </Empty>
         )}
-        <div className="subjects-note">
-          <Clock3 size={15} />
-          <span>A focused conversation. A clearer way forward.</span>
-        </div>
       </main>
-      <footer className="student-footer">
-        <span>Built for curious minds.</span>
-        <span>
-          ConsultAI <span className="footer-dot">·</span> University
-          consultations
-        </span>
-      </footer>
     </>
   );
 }
@@ -163,14 +134,11 @@ export function TimeSelection({ subject }: { subject: Subject }) {
           <SubjectHeader subject={subject} tab="book" />
           <div className="booking-intro">
             <div>
-              <h2>Let’s find a time that works.</h2>
-              <p className="muted">
-                Choose a day, then pick your consultation time.
-              </p>
+              <h2>Choose a time</h2>
             </div>
             <span className="subtle-label">
               <Clock3 size={14} />
-              All times in Skopje
+              Skopje time
             </span>
           </div>
           <div className="date-toolbar">
@@ -224,7 +192,9 @@ export function TimeSelection({ subject }: { subject: Subject }) {
           </div>
           <div className="slot-section-heading">
             <span>AVAILABLE TIMES</span>
-            <span>{available.length} slots</span>
+            <span>
+              {available.length} {available.length === 1 ? "slot" : "slots"}
+            </span>
           </div>
           {slots.error ? (
             <ErrorNotice message={slots.error} retry={slots.refresh} />
@@ -253,10 +223,6 @@ export function TimeSelection({ subject }: { subject: Subject }) {
             </Empty>
           )}
           <div className="slot-actions">
-            <p>
-              <ShieldCheck size={17} />
-              Your time, set aside for you.
-            </p>
             <Button
               disabled={!selected || slots.loading}
               onClick={() =>
@@ -281,11 +247,12 @@ export function BookingForm({
   slotId: string;
   onConfirmed: (booking: Booking) => void;
 }) {
+  const { profile } = useStudentSession();
   const slots = useData<Slot[]>(
     `/slots?from=${today()}&to=${addDays(today(), 62)}`,
   );
   const slot = slots.data?.find((value) => value.id === slotId);
-  const [values, setValues] = useState({ name: "", email: "", question: "" });
+  const [question, setQuestion] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [fields, setFields] = useState<Record<string, string>>({});
@@ -294,7 +261,7 @@ export function BookingForm({
   const lock = useRef(false);
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (!slot || lock.current) return;
+    if (!slot || !profile || lock.current) return;
     lock.current = true;
     setPending(true);
     setError("");
@@ -302,9 +269,8 @@ export function BookingForm({
     try {
       onConfirmed(
         await write<Booking>("/bookings", {
-          ...values,
-          name: values.name.trim(),
-          email: values.email.trim(),
+          ...profile,
+          question: question.trim(),
           subjectId: subject.id,
           slotId,
           expectedStartsAt: slot.startsAt,
@@ -323,8 +289,6 @@ export function BookingForm({
       setPending(false);
     }
   }
-  const change = (key: keyof typeof values, value: string) =>
-    setValues((current) => ({ ...current, [key]: value }));
   return (
     <>
       <Header />
@@ -340,7 +304,7 @@ export function BookingForm({
         ) : !slot ? (
           <div className="panel">
             <Empty title="This time is no longer available">
-              Someone may have booked it. There are other times to connect.
+              Choose another time.
             </Empty>
             <Button onClick={() => go(`/subjects/${subject.id}`)}>
               View available times <ArrowRight size={17} />
@@ -349,66 +313,20 @@ export function BookingForm({
         ) : (
           <div className="booking-columns">
             <section className="panel booking-form">
-              <span className="eyebrow">
-                ONE STEP TO A CLEARER UNDERSTANDING
-              </span>
-              <h1>Book this slot</h1>
-              <p className="muted">A few details, and you’re all set.</p>
-              <div className="booking-recap">
-                <SubjectIcon icon={subject.icon} small />
+              <h1>Book consultation</h1>
+              <div className="booking-profile">
+                <span className="account-avatar">
+                  {profile?.name
+                    .split(" ")
+                    .map((name) => name[0])
+                    .join("")}
+                </span>
                 <div>
-                  <strong>{subject.name}</strong>
-                  <span>{subject.code}</span>
-                </div>
-                <div className="recap-time">
-                  <CalendarDays size={18} />
-                  <div>
-                    <strong>{dateLabel(slot.startsAt)}</strong>
-                    <span>
-                      {time(slot.startsAt)} – {time(slot.endsAt)}
-                    </span>
-                  </div>
+                  <strong>{profile?.name}</strong>
+                  <span>{profile?.email}</span>
                 </div>
               </div>
               <form onSubmit={submit}>
-                <label>
-                  Your name
-                  <div className="input-with-icon">
-                    <UserRound size={18} />
-                    <input
-                      required
-                      minLength={2}
-                      maxLength={100}
-                      autoComplete="name"
-                      placeholder="Your full name"
-                      value={values.name}
-                      onChange={(event) => change("name", event.target.value)}
-                      aria-invalid={!!fields.name}
-                    />
-                  </div>
-                  {fields.name && (
-                    <span className="field-error">{fields.name}</span>
-                  )}
-                </label>
-                <label>
-                  Your email
-                  <div className="input-with-icon">
-                    <Mail size={18} />
-                    <input
-                      required
-                      type="email"
-                      maxLength={254}
-                      autoComplete="email"
-                      placeholder="you@university.edu"
-                      value={values.email}
-                      onChange={(event) => change("email", event.target.value)}
-                      aria-invalid={!!fields.email}
-                    />
-                  </div>
-                  {fields.email && (
-                    <span className="field-error">{fields.email}</span>
-                  )}
-                </label>
                 <label>
                   What would you like to discuss?{" "}
                   <span className="muted label-optional">Optional</span>
@@ -417,16 +335,16 @@ export function BookingForm({
                     <textarea
                       maxLength={2000}
                       rows={4}
-                      placeholder="A concept, a question, a problem you’re working on…"
-                      value={values.question}
-                      onChange={(event) =>
-                        change("question", event.target.value)
-                      }
+                      aria-label="What would you like to discuss?"
+                      aria-invalid={!!fields.question}
+                      placeholder="Topic or question…"
+                      value={question}
+                      onChange={(event) => setQuestion(event.target.value)}
                     />
                   </div>
-                  <span className="field-hint">
-                    Help your professor prepare for your conversation.
-                  </span>
+                  {fields.question && (
+                    <span className="field-error">{fields.question}</span>
+                  )}
                 </label>
                 {error && <ErrorNotice message={error} />}
                 {conflict ? (
@@ -439,22 +357,11 @@ export function BookingForm({
                     {!pending && <ArrowRight size={18} />}
                   </Button>
                 )}
-                <p className="privacy-note">
-                  <LockKeyhole size={13} />
-                  Your details are shared only with your professor.
-                </p>
               </form>
             </section>
             <aside className="panel booking-sidebar">
               <h2>Booking summary</h2>
               <SlotSummary subject={subject} slot={slot} />
-              <div className="summary-note">
-                <CalendarCheck2 size={18} />
-                <p>
-                  A little preparation makes a big difference. Bring your
-                  questions.
-                </p>
-              </div>
             </aside>
           </div>
         )}
@@ -471,11 +378,7 @@ export function Confirmation({ booking }: { booking: Booking }) {
         <span className="success-mark">
           <Check size={34} strokeWidth={2.4} />
         </span>
-        <span className="eyebrow">YOU’RE ALL SET</span>
         <h1>Booking confirmed</h1>
-        <p className="muted">
-          Your consultation is confirmed. We’ll see you there.
-        </p>
         <section className="panel confirmation-card">
           <SlotSummary
             subject={booking.subject}
@@ -491,14 +394,14 @@ export function Confirmation({ booking }: { booking: Booking }) {
         )}
         <div className="confirmation-actions">
           <Button onClick={() => go("/")}>
-            Back to subjects <ArrowRight size={17} />
+            Subjects <ArrowRight size={17} />
           </Button>
           <Button
             secondary
             onClick={() => go(`/subjects/${booking.subject.id}/study`)}
           >
             <Sparkles size={17} />
-            Study before you meet
+            Study with AI
           </Button>
         </div>
       </main>

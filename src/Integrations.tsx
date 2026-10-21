@@ -61,13 +61,6 @@ export default function Integrations({
                 ? "Google Calendar"
                 : "Google Classroom"}
           </h1>
-          <p>
-            {settings
-              ? "A few useful connections. Always optional."
-              : service === "calendar"
-                ? "A schedule that works with your day."
-                : "Bring your courses and materials together."}
-          </p>
         </div>
         <span className="integration-heading-icon">
           {settings ? (
@@ -185,37 +178,17 @@ export default function Integrations({
                 </div>
                 <p className="connection-description">
                   {service === "calendar"
-                    ? "Busy times on your primary calendar stay out of student availability. Confirmed consultations are added to your calendar."
-                    : "Import courses you teach, then choose which materials the study assistant can use."}
+                    ? "Hide busy times and sync bookings."
+                    : "Import subjects and course materials."}
                 </p>
-                <div className="connection-benefits">
-                  {(service === "calendar"
-                    ? [
-                        "Hide calendar conflicts before booking",
-                        "Create an event for each confirmed consultation",
-                        "Retry failed syncs without duplicate events",
-                      ]
-                    : [
-                        "Import your subjects from Classroom",
-                        "Review Drive references in a private workspace",
-                        "Approve materials before students can use them with AI",
-                      ]
-                  ).map((text) => (
-                    <div key={text}>
-                      <Check size={14} />
-                      {text}
-                    </div>
-                  ))}
-                </div>
                 {!status.data.googleConfigured && (
                   <div className="setup-notice">
                     <Info size={17} />
                     <div>
                       <strong>Server setup needed</strong>
                       <p>
-                        Add the Google OAuth credentials and encryption key in
-                        your server environment, then restart. Setup steps are
-                        in the project README.
+                        Add Google OAuth credentials and an encryption key. See
+                        README.
                       </p>
                     </div>
                   </div>
@@ -235,8 +208,7 @@ export default function Integrations({
                 </Button>
                 <p className="connection-footnote">
                   <ShieldCheck size={13} />
-                  Tokens stay encrypted on the server. Booking works without a
-                  connection.
+                  Optional. Tokens stay encrypted.
                 </p>
               </section>
             )}

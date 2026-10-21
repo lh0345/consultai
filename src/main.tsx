@@ -6,9 +6,12 @@ import "@fontsource/roboto/latin-600.css";
 import "@fontsource/roboto/latin-700.css";
 import "./styles.css";
 import App from "./App";
+import { StudentSessionProvider } from "./session";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <App />
+    <StudentSessionProvider>
+      <App />
+    </StudentSessionProvider>
   </React.StrictMode>,
 );

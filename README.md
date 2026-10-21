@@ -33,7 +33,9 @@ The seed creates three editable demo subjects and 40 future slots once; no booki
 
 PostgreSQL enforces one booking per slot and excludes overlapping availability ranges. Adjacent slots are valid. Database triggers reject past bookings and edits to booked slots. Tests exercise the actual engine, including concurrent HTTP and direct database writes, in newly created test schemas (retained to avoid destructive cleanup).
 
-Students can search subjects, select a date/time, book with a question, and see confirmation. Open **Professor area** to manage subjects, add/edit unbooked slots, and review appointments. No application login is required. Availability includes weekends, and all times display in Europe/Skopje.
+Students first use the **mock Google sign-in/sign-up** screen. Both actions use the demo profile Jane Doe (`jane.doe@example.edu`), saved for the current browser tab. The booking form automatically uses that name/email and only asks for an optional discussion topic. The account menu supports sign-out. This is a frontend mock, not real Google identity verification or backend authentication.
+
+Students can search subjects, select a date/time, book, and see confirmation. Open **Professor** to manage subjects, add/edit unbooked slots, and review appointments. Professor administration is still local-demo-only. Availability includes weekends, and all times display in Europe/Skopje.
 
 ## Optional Google Calendar
 

@@ -66,3 +66,11 @@
 - Browser-tested the built frontend → selected slot → real booking → confirmation → reload in an isolated test schema. Checked student/professor layouts at narrow widths and reviewed all seven screen layouts visually. Native screenshots timed out; browser-rendered PDFs were used for visual review.
 - The local demo remains available at `http://localhost:5173`. Explicit QA records and the sample lecture remain in the demo/test databases; existing records were preserved. No remote push or deployment.
 - Remaining limit: Google OAuth/Calendar/Classroom/Drive and Gemini have no credentials, so their live provider behavior is unverified. Missing-key, privacy, import contracts, and provider-failure handling were exercised without claiming live connections. Administration remains local-demo-only.
+
+## Follow-up · Mock Google entry & shorter copy
+
+- Added sign-in/sign-up tabs with an explicitly mocked Google profile, tab-session persistence, and an account menu. Student routes show sign-in first; professor demo access remains separate.
+- Booking uses the mock profile automatically and presents only the optional discussion field. Existing booking validation and conflict handling are preserved.
+- Removed decorative taglines, duplicate instructions, summary tips, and unused styles across student/professor views. Real Google integrations remain separate from mock student identity.
+- Validation: `npm run build` and all eight PostgreSQL integration tests passed. Browser-tested both mock sign-in/sign-up, session reload, and the single-field booking form. A booking in an isolated test schema persisted the mock name/email and discussion topic and appeared in professor records after reload.
+- Reviewed sign-in and booking visuals through browser print rendering; checked both at 390px and 320px with no horizontal overflow. Existing demo bookings were preserved.
