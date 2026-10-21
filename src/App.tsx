@@ -4,6 +4,7 @@ import { Empty, ErrorNotice, Header, Loading } from './components';
 import { BookingForm, Confirmation, Subjects, TimeSelection } from './Student';
 import { useData } from './useData';
 import Professor from './Professor';
+import Study from './Study';
 
 export default function App() {
   const [route, setRoute] = useState(location.hash.slice(1) || '/');
@@ -27,7 +28,7 @@ export default function App() {
   if (!parts.length) return <Subjects subjects={subjects.data || []} />;
   if (parts[0] === 'professor') return <Professor page={parts[1] || 'overview'} subjects={subjects.data || []} refreshSubjects={subjects.refresh} />;
   if (parts[0] === 'subjects' && subject) {
-    if (parts[2] === 'study') return <><Header /><main className="student-content"><Empty title="Your study space is taking shape">Course materials and AI will be available here when configured.</Empty></main></>;
+    if (parts[2] === 'study') return <Study key={subject.id} subject={subject} />;
     return <TimeSelection key={subject.id} subject={subject} />;
   }
   if (parts[0] === 'book' && subject && parts[2]) return <BookingForm key={parts[2]} subject={subject} slotId={parts[2]} onConfirmed={(result) => { setBooking(result); try { sessionStorage.setItem('consultai-confirmation', JSON.stringify(result)); } catch { /* Confirmation still works without browser storage. */ } go('/confirmed'); }} />;

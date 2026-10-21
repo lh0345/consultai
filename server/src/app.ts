@@ -11,6 +11,7 @@ import { resolve } from 'node:path';
 import { BookingService } from './booking.service';
 import { Database } from './database';
 import { GoogleService } from './google.service';
+import { StudyService } from './study.service';
 import { parse, uuid } from './validation';
 import { z } from 'zod';
 
@@ -38,18 +39,24 @@ class ApiErrors implements ExceptionFilter {
 
 @Controller('api')
 class StudentController {
-  constructor(private readonly booking: BookingService) {}
+  constructor(private readonly booking: BookingService, private readonly study: StudyService) {}
   @Get('health') async health() { await this.booking.db.$queryRaw`SELECT 1`; return { status: 'ok', timezone: 'Europe/Skopje' }; }
   @Get('subjects') subjects() { return this.booking.subjects(); }
   @Get('capabilities') capabilities() { return { ai: !!process.env.GEMINI_API_KEY }; }
   @Get('slots') slots(@Query('from') from?: string, @Query('to') to?: string) { return this.booking.slots(from, to); }
   @Post('bookings') book(@Body() body: unknown) { return this.booking.book(body); }
+  @Get('subjects/:id/materials') materials(@Param('id') id: string) { return this.study.materials(id); }
+  @Post('ai') ask(@Body() body: unknown) { return this.study.ask(body); }
 }
 
 @UseGuards(LocalAdminGuard)
 @Controller('api/admin')
 class ProfessorController {
-  constructor(private readonly booking: BookingService, private readonly google: GoogleService) {}
+  constructor(private readonly booking: BookingService, private readonly google: GoogleService, private readonly study: StudyService) {}
+  @Get('materials') materials() { return this.study.adminMaterials(); }
+  @Post('materials') createMaterial(@Body() body: unknown) { return this.study.saveMaterial(body); }
+  @Patch('materials/:id') editMaterial(@Param('id') id: string, @Body() body: unknown) { return this.study.saveMaterial(body, id); }
+  @Patch('materials/:id/approval') approve(@Param('id') id: string, @Body() body: unknown) { return this.study.approve(id, body); }
   @Get('integrations') integrations() { return this.google.status(); }
   @Post('integrations/google/connect') connect(@Body() body: unknown, @Res({ passthrough: true }) response: Response) { return this.google.begin(parse(z.strictObject({ service: z.enum(['calendar', 'classroom']) }), body).service, response); }
   @Get('integrations/google/callback') async callback(@Req() request: Request, @Res() response: Response) {
@@ -75,7 +82,7 @@ class ProfessorController {
   @Patch('subjects/:id') editSubject(@Param('id') id: string, @Body() body: unknown) { return this.booking.saveSubject(body, id); }
 }
 
-@Module({ controllers: [StudentController, ProfessorController], providers: [Database, BookingService, GoogleService, LocalAdminGuard] })
+@Module({ controllers: [StudentController, ProfessorController], providers: [Database, BookingService, GoogleService, StudyService, LocalAdminGuard] })
 class AppModule {}
 
 export async function createApp() {

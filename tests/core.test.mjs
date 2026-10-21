@@ -8,6 +8,7 @@ import { Database } from '../server/dist/database.js';
 import { slotTimes } from '../server/dist/validation.js';
 import { GoogleService } from '../server/dist/google.service.js';
 import { ServiceUnavailableException } from '@nestjs/common';
+import { verifiedSources } from '../server/dist/study.service.js';
 
 // Use a new isolated PostgreSQL schema each run. Never reset or remove existing data.
 const schema = `test_${randomUUID().replaceAll('-', '')}`;
@@ -119,4 +120,25 @@ test('Calendar check failure rejects safely; sync failure preserves confirmed bo
     assert.equal((await request('/bookings', input)).body.id, result.body.id);
     assert.equal(await db.booking.count({ where: { slotId: slot.id } }), 1);
   } finally { Object.assign(google, original); }
+});
+
+test('only approved material metadata is public; AI requires setup and verifies quotes', async () => {
+  const content = 'A binary tree is a hierarchical data structure. Each node has at most two children, a left child and a right child.';
+  const saved = await request('/admin/materials', { subjectId: subjects[0].id, title: 'Binary trees', content, approved: false });
+  assert.equal(saved.status, 201);
+  const material = saved.body;
+  const prompt = { subjectId: subjects[0].id, materialId: material.id, question: 'What is a binary tree?', history: [] };
+  assert.equal((await request('/ai', prompt)).status, 404);
+  assert.deepEqual((await request(`/subjects/${subjects[0].id}/materials`, null, 'GET')).body, []);
+  assert.equal((await request(`/admin/materials/${material.id}/approval`, { approved: true }, 'PATCH')).status, 200);
+  const list = (await request(`/subjects/${subjects[0].id}/materials`, null, 'GET')).body;
+  assert.equal(list[0].title, 'Binary trees');
+  assert.ok(!('content' in list[0]) && !('driveId' in list[0]));
+  const key = process.env.GEMINI_API_KEY;
+  process.env.GEMINI_API_KEY = '';
+  try { assert.equal((await request('/ai', prompt)).status, 503); }
+  finally { if (key === undefined) delete process.env.GEMINI_API_KEY; else process.env.GEMINI_API_KEY = key; }
+  const sources = verifiedSources(material, ['Each node has at most two children, a left child and a right child.', 'This fabricated reference is not in the source.']);
+  assert.equal(sources.length, 1);
+  assert.equal(sources[0].materialId, material.id);
 });

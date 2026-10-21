@@ -41,3 +41,10 @@
 - Integration settings show real configured/connected states. No credentials or tokens are sent to the frontend; no email delivery is claimed or attempted.
 - Type checks and six integration tests passed, including simulated provider-check failure (no booking) and sync failure (booking retained and idempotent).
 - Google credentials are absent: live consent, busy checks, and event creation remain unverified. Core behavior remains independent of all providers.
+
+## 7 · Study assistant & materials
+
+- Calendar commit: `b32cf91`. Added one grounded Gemini endpoint, professor material editing/approval, and the student two-panel study screen.
+- Public APIs expose only approved titles/IDs. Source quotes require exact matches in stored material; private source text and keys stay on the server. Missing credentials, quotas, failures, and loading/empty states are explicit.
+- Seven integration tests passed, adding approval/privacy, missing-key behavior, and rejection of invented source quotes. Frontend/backend type checks passed.
+- Browser-tested adding an explicitly labeled sample lecture, approval, and the student lecture list with AI correctly disabled. No Gemini request was made; live answers remain unverified without credentials.

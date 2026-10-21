@@ -46,4 +46,10 @@ OAuth uses state, an HTTP-only same-site cookie, PKCE, and encrypted refresh tok
 
 Google Calendar changes made outside ConsultAI cannot be atomically locked with a PostgreSQL booking. Local duplicate/overlap prevention is guaranteed by the database. Live OAuth and Google API calls require your credentials and have not been exercised here. See [Google OAuth setup](https://developers.google.com/identity/protocols/oauth2/web-server) and [Calendar API](https://developers.google.com/workspace/calendar/api/v3/reference).
 
+## Optional Gemini & course materials
+
+Set `GEMINI_API_KEY` in `.env`, keep the default `GEMINI_MODEL=gemini-2.5-flash` or select a model available to your key, then restart. A free-tier key can be used; no billing setup is performed by the app. See [Gemini API setup](https://ai.google.dev/gemini-api/docs/api-key) and [current model availability](https://ai.google.dev/gemini-api/docs/pricing).
+
+Under **Professor → AI & materials**, add lecture text and explicitly approve it. Students choose a lecture in **Study with AI**. `/api/ai` sends only that approved material and a bounded conversation to Gemini. Unapproved material and raw private file content are not exposed by public endpoints. Source excerpts are displayed only when they match the actual material. AI answers can still be incorrect. The server limits AI to four requests per minute and handles quota/timeouts without losing the typed question. The interface stays usable without a key; no answers or citations are simulated. Live model responses have not been tested without credentials.
+
 Stage progress and verification are tracked in `docs/PROGRESS.md`. Optional integrations and final production-run instructions will be documented as implemented. Professor administration is a **local demonstration without accounts**; it is not suitable for public hosting. The API binds to loopback and rejects remote professor requests and cross-origin writes.
