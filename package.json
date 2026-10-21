@@ -1,0 +1,54 @@
+{
+  "name": "consultai",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:web": "vite --host 127.0.0.1",
+    "dev:api": "tsc -p server/tsconfig.json && node --env-file=.env server/dist/main.js",
+    "db:local": "node scripts/database.mjs",
+    "db:migrate": "prisma migrate deploy",
+    "db:seed": "tsc -p server/tsconfig.json && node --env-file=.env scripts/seed.mjs",
+    "db:generate": "prisma generate",
+    "check": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p server/tsconfig.json",
+    "build": "npm run check && vite build && tsc -p server/tsconfig.json",
+    "start": "node --env-file=.env server/dist/main.js",
+    "test": "tsc -p server/tsconfig.json && node --env-file=.env --test tests/core.test.mjs"
+  },
+  "dependencies": {
+    "@nestjs/common": "^12.2.0",
+    "@nestjs/core": "^12.2.0",
+    "@nestjs/platform-express": "^12.2.0",
+    "@prisma/client": "7.10.1",
+    "@prisma/adapter-pg": "7.10.1",
+    "@fontsource/roboto": "^5.2.0",
+    "lucide-react": "^0.468.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.0",
+    "@types/express": "^5.0.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^6.0.0",
+    "embedded-postgres": "18.4.0-beta.17",
+    "prisma": "7.10.1",
+    "tailwindcss": "^4.1.0",
+    "typescript": "~5.9.3",
+    "vite": "^8.3.4"
+  },
+  "allowScripts": {
+    "@embedded-postgres/windows-x64@18.4.0-beta.17": true,
+    "@prisma/client@6.19.3": true,
+    "prisma@7.10.1": true,
+    "@prisma/engines@7.10.1": true
+  }
+}

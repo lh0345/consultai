@@ -1,0 +1,8 @@
+node_modules/
+dist/
+server/dist/
+server/src/generated/
+.env
+.local/
+*.log
+*.tsbuildinfo

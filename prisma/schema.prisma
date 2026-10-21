@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client"
+  output = "../server/src/generated/prisma"
+  moduleFormat = "cjs"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Subject {
+  id          String     @id @default(uuid()) @db.Uuid
+  name        String     @db.VarChar(100)
+  code        String     @unique @db.VarChar(20)
+  icon        String     @default("database") @db.VarChar(20)
+  classroomId String?    @unique @db.VarChar(100)
+  createdAt   DateTime   @default(now()) @db.Timestamptz(3)
+  bookings    Booking[]
+  materials   Material[]
+}
+
+model Slot {
+  id        String   @id @default(uuid()) @db.Uuid
+  startsAt  DateTime @db.Timestamptz(3)
+  endsAt    DateTime @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  booking   Booking?
+
+  @@index([startsAt])
+}
+
+model Booking {
+  id             String   @id @default(uuid()) @db.Uuid
+  slotId         String   @unique @db.Uuid
+  subjectId      String   @db.Uuid
+  name           String   @db.VarChar(100)
+  email          String   @db.VarChar(254)
+  question       String   @default("") @db.VarChar(2000)
+  requestKey     String   @unique @db.Uuid
+  calendarStatus String   @default("not_connected") @db.VarChar(20)
+  calendarEventId String?  @db.VarChar(100)
+  createdAt      DateTime @default(now()) @db.Timestamptz(3)
+  slot           Slot     @relation(fields: [slotId], references: [id], onDelete: Restrict)
+  subject        Subject  @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+
+  @@index([subjectId])
+}
+
+model Material {
+  id         String   @id @default(uuid()) @db.Uuid
+  subjectId  String   @db.Uuid
+  title      String   @db.VarChar(150)
+  content    String   @default("") @db.Text
+  approved   Boolean  @default(false)
+  driveId    String?  @unique @db.VarChar(150)
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+  subject    Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@index([subjectId, approved])
+}
+
+model Integration {
+  id           String   @id @db.VarChar(20)
+  refreshToken String   @db.Text
+  scopes       String   @db.Text
+  updatedAt    DateTime @updatedAt @db.Timestamptz(3)
+}
