@@ -55,3 +55,13 @@
 - Migration scopes Drive references per subject, allowing a shared source to be reviewed independently. Imported content is private and unapproved; refreshing it clears approval.
 - Type checks and eight integration tests passed, including imports repeated across two subjects, private text loading, and public metadata exclusion. The provider boundary is controlled in tests; no Google connection is fabricated.
 - Live OAuth, Classroom, Drive, and Gemini still require credentials. Next: final visual review, run-command verification, and cleanup.
+
+## 9 · Final verification & cleanup
+
+- Classroom commit: `d5dfc83`. Reviewed all seven rendered screens against the reference images using browser print rendering; improved secondary text contrast and mobile integration navigation.
+- Added stale-slot protection, atomic pending-sync state, safe local-origin aliases, native dialog accessibility, and backend development reload. Removed unused imports/components and formatted source for readability.
+- Expanded the existing concurrency check to six simultaneous overlapping HTTP slot requests. It exposed Prisma's exclusion-error code `P2039`; fixed its translation to a clear 409 response. All eight tests now pass, including this race and stale-form rejection.
+- Final `npm run build` passed (both strict TypeScript checks and Vite production bundle). `npm audit` reports zero vulnerabilities. The documented `npm run dev` and `npm start` were both executed successfully.
+- Browser-tested the built frontend → selected slot → real booking → confirmation → reload in an isolated test schema. Checked student/professor layouts at narrow widths and reviewed all seven screen layouts visually. Native screenshots timed out; browser-rendered PDFs were used for visual review.
+- The local demo remains available at `http://localhost:5173`. Explicit QA records and the sample lecture remain in the demo/test databases; existing records were preserved. No remote push or deployment.
+- Remaining limit: Google OAuth/Calendar/Classroom/Drive and Gemini have no credentials, so their live provider behavior is unverified. Missing-key, privacy, import contracts, and provider-failure handling were exercised without claiming live connections. Administration remains local-demo-only.

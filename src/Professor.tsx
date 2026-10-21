@@ -27,7 +27,6 @@ import {
   api,
   dateKey,
   dateLabel,
-  go,
   time,
   today,
   write,
