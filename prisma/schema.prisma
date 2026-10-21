@@ -53,11 +53,12 @@ model Material {
   title      String   @db.VarChar(150)
   content    String   @default("") @db.Text
   approved   Boolean  @default(false)
-  driveId    String?  @unique @db.VarChar(150)
+  driveId    String?  @db.VarChar(150)
   createdAt  DateTime @default(now()) @db.Timestamptz(3)
   subject    Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
 
   @@index([subjectId, approved])
+  @@unique([subjectId, driveId])
 }
 
 model Integration {

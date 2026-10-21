@@ -52,4 +52,10 @@ Set `GEMINI_API_KEY` in `.env`, keep the default `GEMINI_MODEL=gemini-2.5-flash`
 
 Under **Professor → AI & materials**, add lecture text and explicitly approve it. Students choose a lecture in **Study with AI**. `/api/ai` sends only that approved material and a bounded conversation to Gemini. Unapproved material and raw private file content are not exposed by public endpoints. Source excerpts are displayed only when they match the actual material. AI answers can still be incorrect. The server limits AI to four requests per minute and handles quota/timeouts without losing the typed question. The interface stays usable without a key; no answers or citations are simulated. Live model responses have not been tested without credentials.
 
+## Optional Classroom & Drive
+
+Enable Classroom API and Drive API in the same Google Cloud project. From **Professor → Classroom**, connect Google and grant the read-only course, course-material, and Drive permissions. Import a course you teach with a course code, then import its published Drive references. Repeat imports preserve existing subjects and material approvals.
+
+Open **AI & materials**, review an imported item, and use **Load source text** for Google Docs or `text/plain` files (20–60,000 characters, at most 240 KB). Loading a source resets its approval. For PDFs, slides, or other formats, paste relevant text manually. Review and explicitly approve the text before students can ask about it. The same Drive file can be approved separately for different subjects. Original private files and URLs are never served to students. Non-Drive attachments are not imported. Live imports require credentials; tests verify the workflow using a controlled provider boundary and real PostgreSQL persistence.
+
 Stage progress and verification are tracked in `docs/PROGRESS.md`. Optional integrations and final production-run instructions will be documented as implemented. Professor administration is a **local demonstration without accounts**; it is not suitable for public hosting. The API binds to loopback and rejects remote professor requests and cross-origin writes.

@@ -330,6 +330,10 @@ form textarea { resize: vertical; min-height: 95px; }
 .approval-checkbox input { width: 15px; height: 15px; margin: 0; flex-shrink: 0; accent-color: #2563eb; }
 .approval-checkbox > span { font-size: 11px; }
 .approval-checkbox > span > span { display: block; margin-top: 7px; color: #a5b4ca; font-size: 9px; line-height: 1.6; }
+.drive-source-note { display: flex; align-items: center; gap: 11px; background: #f4f7fd; border: 1px solid #e6ecf8; border-radius: 8px; padding: 15px; margin-bottom: 20px; color: #8ea5c9; }
+.drive-source-note > svg { flex-shrink: 0; }
+.drive-source-note p { font-size: 10px; line-height: 1.7; margin: 0; }
+.drive-source-note button { min-height: 35px; padding: 9px 11px; font-size: 10px; }
 .integration-heading-icon { background: #eef3fd; color: #7695cf; border: 1px solid #e2eafa; padding: 15px; border-radius: 13px; display: flex; }
 .connection-panel { max-width: 750px; padding: 30px; }
 .connection-title { display: flex; gap: 18px; align-items: center; margin-bottom: 23px; }
@@ -368,6 +372,7 @@ form textarea { resize: vertical; min-height: 95px; }
 .sidebar .logo-mark svg { width: 20px; }
 .sidebar-caption { color: #a2aec1; font-size: 8px; letter-spacing: .12em; font-weight: 500; padding-left: 17px; margin-bottom: 15px; }
 .sidebar nav { display: flex; flex-direction: column; gap: 5px; }
+.sidebar nav a.mobile-settings { display: none; }
 .sidebar nav a, .sidebar-setting { display: flex; gap: 12px; align-items: center; padding: 13px 17px; border-radius: 7px; color: #71809b; font-size: 12px; min-height: 44px; }
 .sidebar nav a svg { color: #8999b4; stroke-width: 1.6; }
 .sidebar nav a[aria-current] { background: #edf3ff; color: #2563eb; font-weight: 500; }
@@ -576,6 +581,8 @@ form textarea { resize: vertical; min-height: 95px; }
   .sidebar > .sidebar-caption, .sidebar-divider, .sidebar > nav[aria-label="Integration navigation"], .sidebar-setting, .local-label { display: none; }
   .sidebar nav[aria-label="Professor navigation"] { position: fixed; bottom: 0; left: 0; right: 0; height: 64px; background: #fff; border-top: 1px solid #e7edf5; flex-direction: row; justify-content: space-around; gap: 0; padding: 5px 12px; }
   .sidebar nav a { min-width: 72px; padding: 8px 4px 6px; font-size: 8px; flex-direction: column; gap: 5px; border-radius: 7px; }
+  .sidebar nav a { min-width: 0; flex: 1; }
+  .sidebar nav a.mobile-settings { display: flex; }
   .sidebar nav a svg { width: 17px; height: 17px; }
   .sidebar-bottom { padding: 0; margin: 0; }
   .student-view { padding: 0; font-size: 9px; gap: 5px; }

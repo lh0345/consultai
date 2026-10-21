@@ -142,3 +142,39 @@ test('only approved material metadata is public; AI requires setup and verifies 
   assert.equal(sources.length, 1);
   assert.equal(sources[0].materialId, material.id);
 });
+
+test('Classroom imports are repeatable, private, and scoped to each subject', async () => {
+  const google = app.get(GoogleService);
+  const original = { connected: google.connected, request: google.request };
+  const courseData = [{ id: 'course_one', name: 'Imported course one' }, { id: 'course_two', name: 'Imported course two' }];
+  try {
+    google.connected = async () => true;
+    google.request = async (url) => {
+      const path = new URL(url).pathname;
+      let body;
+      if (path === '/v1/courses') body = { courses: courseData };
+      else if (path.endsWith('/courseWorkMaterials')) body = { courseWorkMaterial: [{ id: 'lecture_one', title: 'Imported lecture', materials: [{ driveFile: { driveFile: { id: 'shared_drive_source', title: 'Private notes' } } }] }] };
+      else if (path.endsWith('/export')) return new Response('These private lecture notes describe how a binary tree stores at most two child nodes per parent.');
+      else if (path.endsWith('/shared_drive_source')) body = { mimeType: 'application/vnd.google-apps.document', capabilities: { canDownload: true } };
+      else throw new Error('Unexpected provider URL');
+      return Response.json(body);
+    };
+    for (const [index, course] of courseData.entries()) {
+      const imported = await request('/admin/classroom/courses', { courseId: course.id, code: `IMPORT-${index}` });
+      assert.equal(imported.status, 201);
+      const subject = imported.body;
+      assert.equal((await request('/admin/classroom/courses', { courseId: course.id, code: `IMPORT-${index}` })).body.id, subject.id);
+      assert.equal((await request('/admin/classroom/materials', { subjectId: subject.id })).body.imported, 1);
+      assert.equal((await request('/admin/classroom/materials', { subjectId: subject.id })).body.imported, 0);
+      const material = await db.material.findFirstOrThrow({ where: { subjectId: subject.id } });
+      assert.equal(material.approved, false);
+      assert.equal(material.content, '');
+      const loaded = await request(`/admin/materials/${material.id}/drive`, {});
+      assert.equal(loaded.status, 201);
+      assert.equal(loaded.body.approved, false);
+      assert.ok(loaded.body.content.startsWith('These private lecture notes'));
+      assert.deepEqual((await request(`/subjects/${subject.id}/materials`, null, 'GET')).body, []);
+    }
+    assert.equal(await db.material.count({ where: { driveId: 'shared_drive_source' } }), 2);
+  } finally { Object.assign(google, original); }
+});

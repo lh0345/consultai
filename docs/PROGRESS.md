@@ -48,3 +48,10 @@
 - Public APIs expose only approved titles/IDs. Source quotes require exact matches in stored material; private source text and keys stay on the server. Missing credentials, quotas, failures, and loading/empty states are explicit.
 - Seven integration tests passed, adding approval/privacy, missing-key behavior, and rejection of invented source quotes. Frontend/backend type checks passed.
 - Browser-tested adding an explicitly labeled sample lecture, approval, and the student lecture list with AI correctly disabled. No Gemini request was made; live answers remain unverified without credentials.
+
+## 8 · Classroom & Drive
+
+- Study-assistant commit: `6ceb750`. Added teacher-course import, published Drive references, authorized Google Docs/plain-text loading, explicit review/approval, and repeatable imports.
+- Migration scopes Drive references per subject, allowing a shared source to be reviewed independently. Imported content is private and unapproved; refreshing it clears approval.
+- Type checks and eight integration tests passed, including imports repeated across two subjects, private text loading, and public metadata exclusion. The provider boundary is controlled in tests; no Google connection is fabricated.
+- Live OAuth, Classroom, Drive, and Gemini still require credentials. Next: final visual review, run-command verification, and cleanup.

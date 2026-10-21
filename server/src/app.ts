@@ -12,6 +12,7 @@ import { BookingService } from './booking.service';
 import { Database } from './database';
 import { GoogleService } from './google.service';
 import { StudyService } from './study.service';
+import { ClassroomService } from './classroom.service';
 import { parse, uuid } from './validation';
 import { z } from 'zod';
 
@@ -52,7 +53,11 @@ class StudentController {
 @UseGuards(LocalAdminGuard)
 @Controller('api/admin')
 class ProfessorController {
-  constructor(private readonly booking: BookingService, private readonly google: GoogleService, private readonly study: StudyService) {}
+  constructor(private readonly booking: BookingService, private readonly google: GoogleService, private readonly study: StudyService, private readonly classroom: ClassroomService) {}
+  @Get('classroom/courses') classroomCourses() { return this.classroom.courses(); }
+  @Post('classroom/courses') importCourse(@Body() body: unknown) { return this.classroom.importCourse(body); }
+  @Post('classroom/materials') importMaterials(@Body() body: unknown) { return this.classroom.importMaterials(body); }
+  @Post('materials/:id/drive') loadDrive(@Param('id') id: string) { return this.classroom.loadText(id); }
   @Get('materials') materials() { return this.study.adminMaterials(); }
   @Post('materials') createMaterial(@Body() body: unknown) { return this.study.saveMaterial(body); }
   @Patch('materials/:id') editMaterial(@Param('id') id: string, @Body() body: unknown) { return this.study.saveMaterial(body, id); }
@@ -82,7 +87,7 @@ class ProfessorController {
   @Patch('subjects/:id') editSubject(@Param('id') id: string, @Body() body: unknown) { return this.booking.saveSubject(body, id); }
 }
 
-@Module({ controllers: [StudentController, ProfessorController], providers: [Database, BookingService, GoogleService, StudyService, LocalAdminGuard] })
+@Module({ controllers: [StudentController, ProfessorController], providers: [Database, BookingService, GoogleService, StudyService, ClassroomService, LocalAdminGuard] })
 class AppModule {}
 
 export async function createApp() {
